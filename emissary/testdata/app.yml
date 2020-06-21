@@ -1,0 +1,43 @@
+emissaryConfiguration:
+  clientConfiguration:
+    clientName: SomeApp
+    enableNewRelicLogging: true
+    newRelicLoggingPrefix: SomeApp-NewRelic
+  services:
+    serviceA:
+      type: http
+      host: jsonplaceholder.typicode.com
+      port: 80
+      apis:
+        update:
+          method: GET
+          path: /todos/1
+          acceptableResponseCodes: [200]
+          connectionRequestTimeout: 50
+          concurrency: 4
+          maxRequestQueueSize: 100
+          requestTimeout: 10000
+          elixirEnabled: true
+    serviceB:
+      type: http
+      host: jsonplaceholder.typicode.com
+      port: 80
+      apis:
+        update:
+          method: GET
+          path: /todos/$${id}
+          acceptableResponseCodes: [200]
+          connectionRequestTimeout: 50
+          concurrency: 4
+          maxRequestQueueSize: 100
+          requestTimeout: 10000
+          elixirEnabled: true
+        updateGet:
+          method: POST
+          path: /v1/order/state/update
+          acceptableResponseCodes: [200]
+          connectionRequestTimeout: 50
+          concurrency: 4
+          maxRequestQueueSize: 100
+          requestTimeout: 10000
+          elixirEnabled: true
