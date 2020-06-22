@@ -2,13 +2,14 @@ package emissary
 
 import (
     "github.com/afex/hystrix-go/hystrix"
+    "github.com/harishb2k/easy-go/basic"
 )
 
 type HystrixHttpCommand struct {
     HttpCommand
 }
 
-func NewHystrixHttpCommand(Service Service, Api Api, logger ILogger) (*HystrixHttpCommand) {
+func NewHystrixHttpCommand(Service Service, Api Api, logger basic.Logger) (*HystrixHttpCommand) {
     httpCommand := HystrixHttpCommand{
         HttpCommand: HttpCommand{
             Service: Service,
@@ -20,7 +21,7 @@ func NewHystrixHttpCommand(Service Service, Api Api, logger ILogger) (*HystrixHt
 }
 
 // Setup a command at boot time
-func (c *HystrixHttpCommand) Setup(logger ILogger) (err error) {
+func (c *HystrixHttpCommand) Setup(logger basic.Logger) (err error) {
 
     // Setup hystrix command
     hystrix.ConfigureCommand(
@@ -55,7 +56,7 @@ func (c *HystrixHttpCommand) Execute(request CommandRequest) (_r interface{}, er
         return out, nil
 
     case err := <-hystrixError:
-        c.Logger.Log("Error to run", c.commandName(), err)
+        c.Error("Error to run", c.commandName(), err)
         return nil, err
     }
 }

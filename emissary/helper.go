@@ -70,9 +70,3 @@ func Stringify(input interface{}) (string) {
         return input.(string);
     }
 }
-
-type NoOpLogger struct {
-}
-
-func (dl NoOpLogger) Log(l ...interface{}) {
-}

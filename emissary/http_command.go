@@ -6,6 +6,7 @@ import (
     "errors"
     "github.com/google/uuid"
     _ "github.com/google/uuid"
+    "github.com/harishb2k/easy-go/basic"
     "io/ioutil"
     "net/http"
     "strconv"
@@ -16,7 +17,7 @@ import (
 type HttpCommand struct {
     Service Service
     Api     Api
-    Logger  ILogger
+    basic.Logger
 }
 
 // Build command name for hystrix
@@ -29,11 +30,11 @@ func (c *HttpCommand) getUrl() (string) {
 }
 
 // Setup this command
-func (c *HttpCommand) Setup(logger ILogger) (err error) {
+func (c *HttpCommand) Setup(logger basic.Logger) (err error) {
     if logger != nil {
         c.Logger = logger
     } else {
-        c.Logger = &DefaultLogger{};
+        c.Logger = &basic.DefaultLogger{};
     }
     return nil
 }
@@ -47,7 +48,7 @@ func (c *HttpCommand) Execute(request CommandRequest) (result interface{}, err e
     defer cancel()
 
     var url = c.getUrl()
-    c.Logger.Log(requestId, c.commandName(), "URL", url)
+    c.Debug(requestId, c.commandName(), "URL", url)
 
     // Update URL with all input params
     if request.PathParamFunc != nil {
@@ -58,7 +59,7 @@ func (c *HttpCommand) Execute(request CommandRequest) (result interface{}, err e
             }
         }
     }
-    c.Logger.Log(requestId, c.commandName(), "Modified URL", url)
+    c.Debug(requestId, c.commandName(), "Modified URL", url)
 
     var httpRequest *http.Request;
     switch c.Api.Method {
@@ -114,7 +115,7 @@ func (c *HttpCommand) Execute(request CommandRequest) (result interface{}, err e
 
     if request.ResultFunc != nil && body != nil && len(body) > 0 {
         result, err = request.ResultFunc(body)
-        c.Logger.Log(requestId, c.commandName(), "ResultFunc Output", result, "ResultFunc Error", err)
+        c.Debug(requestId, c.commandName(), "ResultFunc Output", result, "ResultFunc Error", err)
         return result, err
     }
 

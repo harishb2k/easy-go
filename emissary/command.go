@@ -1,6 +1,7 @@
 package emissary
 
 import (
+    "github.com/harishb2k/easy-go/basic"
     "github.com/jwangsadinata/go-multimap/slicemultimap"
 )
 
@@ -31,7 +32,7 @@ type CommandRequest struct {
 // This is a command interface. A valid implementation would be HTTP
 type Command interface {
     // Setup a command at boot time
-    Setup(logger ILogger) (err error)
+    Setup(logger basic.Logger) (err error)
 
     // Execute command with given info
     Execute(request CommandRequest) (interface{}, error)
@@ -41,10 +42,10 @@ type Command interface {
 type CommandContext struct {
     commandList    map[string]map[string]Command
     DisableLogging bool
-    logger         ILogger
+    logger         basic.Logger
 }
 
-func NewCommandContext(configuration *Configuration, logger ILogger) (ctx CommandContext, err error) {
+func NewCommandContext(configuration *Configuration, logger basic.Logger) (ctx CommandContext, err error) {
     ctx = CommandContext{
         commandList: map[string]map[string]Command{},
         logger:      logger,

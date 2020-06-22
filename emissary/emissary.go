@@ -1,7 +1,5 @@
 package emissary
 
-import "fmt"
-
 // Client Config e.g. client name etc for logging
 type ClientConfiguration struct {
     ClientName            string `yaml:"clientName"`
@@ -35,15 +33,4 @@ type Service struct {
 type Configuration struct {
     ClientConfiguration ClientConfiguration `yaml:"clientConfiguration"`
     ServiceList         map[string]Service  `yaml:"services"`
-}
-
-type ILogger interface {
-    Log(l ...interface{})
-}
-
-type DefaultLogger struct {
-}
-
-func (dl DefaultLogger) Log(l ...interface{}) {
-    fmt.Println(l...)
 }
