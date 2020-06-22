@@ -39,8 +39,7 @@ func init() {
         }
     }
 
-    commandContext = CommandContext{DisableLogging: false}
-    commandContext.Setup(&config.EmissaryConfiguration)
+    commandContext, _ = NewCommandContext(&config.EmissaryConfiguration, NoOpLogger{})
 }
 
 func TestHttpCommand(t *testing.T) {
@@ -60,7 +59,7 @@ func TestHttpCommand(t *testing.T) {
         Service: service,
         Api:     api,
     }
-    httpCommand.Setup()
+    httpCommand.Setup(NoOpLogger{})
 
     request := CommandRequest{
         BodyFunc:   DefaultObjectToBodyFunc(&internalResult{Title: "Some Title"}),
@@ -85,11 +84,13 @@ func TestHttpCommandTimeout(t *testing.T) {
     api.RequestTimeout = 1
 
     // Command setup
-    httpCommand := HttpCommand{
-        Service: service,
-        Api:     api,
+    httpCommand := HystrixHttpCommand{
+        HttpCommand: HttpCommand{
+            Service: service,
+            Api:     api,
+        },
     }
-    httpCommand.Setup()
+    httpCommand.Setup(NoOpLogger{})
 
     request := CommandRequest{
         BodyFunc:   DefaultObjectToBodyFunc(&internalResult{Title: "Some Title"}),

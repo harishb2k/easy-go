@@ -44,12 +44,6 @@ type ILogger interface {
 type DefaultLogger struct {
 }
 
-func (dl *DefaultLogger) Log(l ...interface{}) {
+func (dl DefaultLogger) Log(l ...interface{}) {
     fmt.Println(l...)
-}
-
-type NoOpLogger struct {
-}
-
-func (dl *NoOpLogger) Log(l ...interface{}) {
 }

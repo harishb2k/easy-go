@@ -4,7 +4,6 @@ import (
     "bytes"
     "context"
     "errors"
-    "github.com/afex/hystrix-go/hystrix"
     "github.com/google/uuid"
     _ "github.com/google/uuid"
     "io/ioutil"
@@ -30,51 +29,17 @@ func (c *HttpCommand) getUrl() (string) {
 }
 
 // Setup this command
-func (c *HttpCommand) Setup() (err error) {
-
-    // Setup hystrix command
-    hystrix.ConfigureCommand(
-        c.commandName(),
-        hystrix.CommandConfig{
-            Timeout:               c.Api.RequestTimeout + (c.Api.RequestTimeout / 10),
-            MaxConcurrentRequests: c.Api.MaxRequestQueueSize,
-            ErrorPercentThreshold: 25,
-        },
-    )
-
-    // Setup Default Logger
-    if c.Logger == nil {
-        c.Logger = &DefaultLogger{}
+func (c *HttpCommand) Setup(logger ILogger) (err error) {
+    if logger != nil {
+        c.Logger = logger
+    } else {
+        c.Logger = &DefaultLogger{};
     }
-
     return nil
 }
 
 // Make Http Request
 func (c *HttpCommand) Execute(request CommandRequest) (result interface{}, err error) {
-
-    _output := make(chan interface{}, 1)
-    hystrixError := hystrix.Go(c.commandName(), func() (error) {
-        if result, err := c.internalExecute(request); err != nil {
-            close(_output)
-        } else {
-            _output <- result
-        }
-        return err
-    }, nil)
-
-    select {
-    case out := <-_output:
-        return out, nil
-
-    case err := <-hystrixError:
-        c.Logger.Log("Error to run", c.commandName(), err)
-        return nil, err
-    }
-}
-
-// Make Http Request
-func (c *HttpCommand) internalExecute(request CommandRequest) (result interface{}, err error) {
     requestId := uuid.New().String()
 
     // Setup http timeout to kill request if it takes longer

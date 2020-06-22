@@ -2,8 +2,25 @@ package emissary
 
 import (
     "encoding/json"
+    "errors"
     "strconv"
 )
+
+// A helper to get a command using service and api name
+func (ctx *CommandContext) Get(service string, api string) (command Command, err error) {
+    var commandList map[string]Command;
+    var found bool
+
+    if commandList, found = ctx.commandList[service]; !found {
+        return nil, errors.New("Command not found service=" + service + " api=" + api)
+    }
+
+    var commandToReturn Command;
+    if commandToReturn, found = commandList[api]; !found {
+        return nil, errors.New("Command not found service=" + service + " api=" + api)
+    }
+    return commandToReturn, nil
+}
 
 // A helper to execute command using service and api name
 func (ctx *CommandContext) Execute(service string, api string, request CommandRequest) (result interface{}, err error) {
@@ -52,4 +69,10 @@ func Stringify(input interface{}) (string) {
     default:
         return input.(string);
     }
+}
+
+type NoOpLogger struct {
+}
+
+func (dl NoOpLogger) Log(l ...interface{}) {
 }
