@@ -78,15 +78,14 @@ func TestHttpCommand(t *testing.T) {
             ResultFunc: DefaultJsonResultFunc(&dummyHttpResponse{}),
         },
     )
-    assertions.ShouldBeNil(err)
-    assertions.ShouldNotBeNil(response)
+    assert.NoError(t, err)
+    assert.NotNil(t, response)
 
-    // verify result
     result, ok := response.Result.(*dummyHttpResponse)
-    assertions.ShouldBeTrue(ok)
-    assertions.ShouldNotBeNil(result)
-    assertions.ShouldEqual(100, result.ID)
-    assertions.ShouldEqual("testme", result.Title)
+    assert.True(t, ok)
+    assert.NotNil(t, result)
+    assert.Equal(t, 100, result.ID)
+    assert.Equal(t, "testme", result.Title)
 }
 
 func TestHttpCommandWithError400(t *testing.T) {
