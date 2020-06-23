@@ -50,22 +50,14 @@ func simpleGetMethod(w http.ResponseWriter, req *http.Request) {
 
 func simpleGetMethodWithError(w http.ResponseWriter, req *http.Request) {
     if obj, err := readTestServerObjectFromRequest(req); err != nil {
-        http.Error(
-            w,
-            http.StatusText(http.StatusInternalServerError),
-            http.StatusInternalServerError,
-        )
+        http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
     } else {
-        http.Error(
-            w,
-            http.StatusText(http.StatusInternalServerError),
-            obj.ErrorCodeToReturn,
-        )
+        http.Error(w, http.StatusText(http.StatusInternalServerError), obj.ErrorCodeToReturn)
     }
 }
 
 func simplePostMethod(w http.ResponseWriter, req *http.Request) {
-    if obj, err := readTestServerObjectFromRequest(req); err != nil {
+    if obj, err := readTestServerObjectFromRequest(req); err == nil {
         out := TestServerObject{}
         out.ResponseStringValue = obj.StringValue + " Response"
         out.ResponseIntValue = obj.IntValue + 1
@@ -81,10 +73,18 @@ func simplePostMethod(w http.ResponseWriter, req *http.Request) {
         }
 
         if payloadAsString, err := StringifyWithError(out); err != nil {
-            w.WriteHeader(500)
+            http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
         } else {
             fmt.Fprintf(w, "%s", payloadAsString)
         }
+    }
+}
+
+func simplePostMethodWithError(w http.ResponseWriter, req *http.Request) {
+    if obj, err := readTestServerObjectFromRequest(req); err != nil {
+        http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+    } else {
+        http.Error(w, http.StatusText(http.StatusInternalServerError), obj.ErrorCodeToReturn)
     }
 }
 
@@ -102,6 +102,7 @@ func RunServer(port string) {
         http.HandleFunc("/v1/simpleGetMethodWithError", simpleGetMethodWithError)
         http.HandleFunc("/v1/simpleGetMethod", simpleGetMethod)
         http.HandleFunc("/v1/simplePostMethod", simplePostMethod)
+        http.HandleFunc("/v1/simplePostMethodWithError", simplePostMethodWithError)
         fmt.Println("Running server at {} port", port)
         DummyServer := &http.Server{Addr: ":" + port}
         if err := DummyServer.ListenAndServe(); err != nil {

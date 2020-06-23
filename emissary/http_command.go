@@ -80,7 +80,29 @@ func (c *HttpCommand) Execute(request *Request) (response *Response, e easy.Erro
             }
         }
         break
+
+    case "POST":
+        if httpRequest, err = http.NewRequest("POST", url, body); err != nil {
+            return nil, &easy.ErrorObj{
+                Err:         err,
+                Name:        "http_call_failed",
+                Description: "Failed to create http request for " + c.commandName(),
+                Object:      &Response{StatusCode: 500, Status: "Unknown"},
+            }
+        }
+        break
+
+    default:
+        return nil, &easy.ErrorObj{
+            Err:         errors.New("method not supported"),
+            Name:        "http_call_failed",
+            Description: "Http request does not support method type " + c.commandName(),
+            Object:      &Response{StatusCode: 500, Status: "Unknown"},
+        }
     }
+
+    // Setup Headers
+    c.populateHeaders(requestId, request, httpRequest)
 
     // Make http call
     var httpResponse *http.Response;
@@ -125,6 +147,21 @@ func (c *HttpCommand) getUrl(reqId string, request *Request) (string) {
     }
 
     return url
+}
+
+func (c *HttpCommand) populateHeaders(reqId string, request *Request, httpRequest *http.Request) {
+
+    // Setup headers
+    if request.Header != nil {
+        for key, value := range request.Header {
+            httpRequest.Header.Set(key, easy.Stringify(value))
+        }
+    }
+
+    // Setup default content-type (if missing)
+    if httpRequest.Header.Get("Content-Type") == "" && httpRequest.Header.Get("content-type") == "" {
+        httpRequest.Header.Add("Content-Type", "application/json");
+    }
 }
 
 // Populate response

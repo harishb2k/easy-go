@@ -178,3 +178,52 @@ func TestHystrixHttpCommand_ActualServer_HystrixCircuitOpen(t *testing.T) {
     }
     assert.True(t, hystrixErrorCircuitOpen > 60)
 }
+
+func TestHystrixHttpCommand_ActualServer_Post_ExpectSuccess(t *testing.T) {
+    setupTest()
+    ctx, _ := NewContext(
+        config.EmissaryConfiguration,
+        logger,
+    )
+
+    response, err := ctx.Execute(
+        "local", "simplePostMethod",
+        &Request{
+            Header:     map[string]interface{}{"A": "B", "C": 1, "D": false},
+            PathParam:  map[string]interface{}{"id": 1},
+            Body:       &TestServerObject{StringValue: "TestHystrixHttpCommand_ActualServer"},
+            ResultFunc: DefaultJsonResultFunc(&TestServerObject{}),
+        },
+    )
+    var _ = response
+    assert.NoError(t, err)
+    assert.NotNil(t, response)
+    result, ok := response.Result.(*TestServerObject)
+    assert.True(t, ok)
+    assert.NotNil(t, result)
+    assert.Equal(t, "TestHystrixHttpCommand_ActualServer Response", result.ResponseStringValue)
+
+    assert.Equal(t, result.Headers["A"], "B")
+    assert.Equal(t, result.Headers["C"], "1")
+    assert.Equal(t, result.Headers["D"], "false")
+}
+
+func TestHystrixHttpCommand_ActualServer_Post_ExpectError(t *testing.T) {
+    setupTest()
+    ctx, _ := NewContext(
+        config.EmissaryConfiguration,
+        logger,
+    )
+
+    response, err := ctx.Execute(
+        "local", "simplePostMethodWithError",
+        &Request{
+            Header:     map[string]interface{}{"A": "B", "C": 1, "D": false},
+            PathParam:  map[string]interface{}{"id": 1},
+            Body:       &TestServerObject{StringValue: "TestHystrixHttpCommand_ActualServer", ErrorCodeToReturn: 500},
+            ResultFunc: DefaultJsonResultFunc(&TestServerObject{}),
+        },
+    )
+    assert.Error(t, err)
+    assert.Nil(t, response)
+}

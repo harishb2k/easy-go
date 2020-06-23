@@ -36,6 +36,15 @@ emissaryConfiguration:
           maxRequestQueueSize: 100
           requestTimeout: 10000
           elixirEnabled: true
+        simplePostMethodWithError:
+          method: POST
+          path: /v1/simplePostMethodWithError
+          acceptableResponseCodes: [200]
+          connectionRequestTimeout: 50
+          concurrency: 4
+          maxRequestQueueSize: 100
+          requestTimeout: 10000
+          elixirEnabled: true
     serviceA:
       type: http
       host: jsonplaceholder.typicode.com
