@@ -2,7 +2,6 @@ package emissary
 
 import (
     "fmt"
-    "github.com/harishb2k/easy-go/basic"
     "github.com/harishb2k/easy-go/easy"
 )
 
@@ -34,7 +33,7 @@ type Response struct {
 
 type Command interface {
     // A method to setup a command when it is initialized by emissary framework
-    Setup(logger basic.Logger) (err error)
+    Setup(logger easy.Logger) (err error)
 
     // Execute a request
     Execute(request *Request) (response *Response, err easy.Error)

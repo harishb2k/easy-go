@@ -3,7 +3,6 @@ package emissary
 import (
     "context"
     "github.com/google/uuid"
-    "github.com/harishb2k/easy-go/basic"
     "github.com/harishb2k/easy-go/easy"
     "io/ioutil"
     "net/http"
@@ -15,10 +14,10 @@ import (
 type HttpCommand struct {
     Service Service
     Api     Api
-    basic.Logger
+    easy.Logger
 }
 
-func NewHttpCommand(service Service, api Api, logger basic.Logger) (HttpCommand) {
+func NewHttpCommand(service Service, api Api, logger easy.Logger) (HttpCommand) {
     command := HttpCommand{
         Service: service,
         Api:     api,
@@ -28,11 +27,11 @@ func NewHttpCommand(service Service, api Api, logger basic.Logger) (HttpCommand)
 }
 
 // Setup this command
-func (c *HttpCommand) Setup(logger basic.Logger) (err error) {
+func (c *HttpCommand) Setup(logger easy.Logger) (err error) {
     if logger != nil {
         c.Logger = logger
     } else {
-        c.Logger = &basic.DefaultLogger{};
+        c.Logger = &easy.DefaultLogger{};
     }
     return nil
 }
@@ -100,7 +99,7 @@ func (c *HttpCommand) getUrl(reqId string, request *Request) (string) {
 
     if request.PathParam != nil {
         for key, value := range request.PathParam {
-            url = strings.Replace(url, "$${"+key+"}", basic.Stringify(value), 1)
+            url = strings.Replace(url, "$${"+key+"}", easy.Stringify(value), 1)
         }
         c.Debug(reqId, "HttpCommand: after path param replacement url=", url)
     }

@@ -1,4 +1,4 @@
-package basic
+package easy
 
 import "log"
 

@@ -1,7 +1,7 @@
 package emissary
 
 import (
-    "github.com/harishb2k/easy-go/basic"
+    . "github.com/harishb2k/easy-go/easy"
     . "github.com/harishb2k/easy-go/test_http"
     "github.com/jarcoal/httpmock"
     "github.com/stretchr/testify/assert"
@@ -65,7 +65,7 @@ func TestHttpCommand_ExpectSuccess(t *testing.T) {
     httpCommand := NewHttpCommand(
         service,
         api,
-        basic.DefaultLogger{},
+        DefaultLogger{},
     )
 
     // Make Http call
@@ -111,7 +111,7 @@ func TestHttpCommand_ExpectSuccess_ServerReturnedStatus400_But400_Is_Accepted(t 
     httpCommand := NewHttpCommand(
         service,
         api,
-        basic.DefaultLogger{},
+        DefaultLogger{},
     )
 
     // Make Http call
@@ -161,7 +161,7 @@ func TestHttpCommand_ExpectSuccess_ServerTimeout(t *testing.T) {
     httpCommand := NewHttpCommand(
         service,
         api,
-        basic.DefaultLogger{},
+        DefaultLogger{},
     )
 
     // Make Http call
@@ -203,7 +203,7 @@ func TestHystrixHttpCommand_ExpectSuccess(t *testing.T) {
     httpCommand := NewHystrixHttpCommand(
         service,
         api,
-        basic.DefaultLogger{},
+        DefaultLogger{},
     )
 
     // Make Http call
@@ -250,7 +250,7 @@ func TestHystrixHttpCommand_ExpectError_WithTimeout(t *testing.T) {
     httpCommand := NewHystrixHttpCommand(
         service,
         api,
-        basic.DefaultLogger{},
+        DefaultLogger{},
     )
 
     // Make Http call
