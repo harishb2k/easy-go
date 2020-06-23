@@ -1,12 +1,9 @@
 package emissary
 
 import (
-    "fmt"
     "github.com/harishb2k/easy-go/basic"
-    "github.com/harishb2k/easy-go/easy"
     . "github.com/harishb2k/easy-go/test_http"
     "github.com/jarcoal/httpmock"
-    "github.com/smartystreets/assertions"
     "github.com/stretchr/testify/assert"
     "gopkg.in/yaml.v3"
     "io/ioutil"
@@ -43,7 +40,7 @@ func setupTest() {
     }
 }
 
-func TestHttpCommand(t *testing.T) {
+func TestHttpCommand_ExpectSuccess(t *testing.T) {
     setupTest()
 
     httpmock.Activate()
@@ -88,7 +85,7 @@ func TestHttpCommand(t *testing.T) {
     assert.Equal(t, "testme", result.Title)
 }
 
-func TestHttpCommandWithError400(t *testing.T) {
+func TestHttpCommand_ExpectSuccess_ServerReturnedStatus400_But400_Is_Accepted(t *testing.T) {
     setupTest()
 
     httpmock.Activate()
@@ -96,9 +93,9 @@ func TestHttpCommandWithError400(t *testing.T) {
 
     // Get service and api from config
     service := config.EmissaryConfiguration.ServiceList["serviceB"]
-    api := service.ApiList["updateWith400"]
+    api := service.ApiList["updateWithAcceptableCode_400"]
     service.Name = "serviceB"
-    api.Name = "updateWith400"
+    api.Name = "updateWithAcceptableCode_400"
 
     // Setup dummy http response
     SetupMockHttpResponse(
@@ -124,18 +121,19 @@ func TestHttpCommandWithError400(t *testing.T) {
             ResultFunc: DefaultJsonResultFunc(&dummyHttpResponse{}),
         },
     )
-    assertions.ShouldBeNil(err)
-    assertions.ShouldNotBeNil(response)
+    assert.NoError(t, err)
+    assert.NotNil(t, response)
 
     // verify result
     result, ok := response.Result.(*dummyHttpResponse)
-    assertions.ShouldBeTrue(ok)
-    assertions.ShouldNotBeNil(result)
-    assertions.ShouldEqual(100, result.ID)
-    assertions.ShouldEqual(400, response.StatusCode)
+    assert.True(t, ok)
+    assert.NotNil(t, result)
+    assert.Equal(t, 100, result.ID)
+    assert.Equal(t, "testme", result.Title)
+    assert.Equal(t, 400, response.StatusCode)
 }
 
-func TestHttpCommandWithTimeout(t *testing.T) {
+func TestHttpCommand_ExpectSuccess_ServerTimeout(t *testing.T) {
     setupTest()
 
     httpmock.Activate()
@@ -173,15 +171,14 @@ func TestHttpCommandWithTimeout(t *testing.T) {
             ResultFunc: DefaultJsonResultFunc(&dummyHttpResponse{}),
         },
     )
-    assert.Error(t, err, "we must get error from http command")
-    assert.Nil(t, response, "We must have nil response - api timed out")
-    if errorResponse, ok := err.(*easy.ErrorObj); ok {
-        fmt.Println("Error From Http Call - ", errorResponse)
-    }
-
+    assert.Error(t, err)
+    assert.Nil(t, response)
+    obj, ok := err.GetObject().(Response)
+    assert.True(t, ok)
+    assert.Equal(t, 500, obj.StatusCode)
 }
 
-func TestHystrixHttpCommand(t *testing.T) {
+func TestHystrixHttpCommand_ExpectSuccess(t *testing.T) {
     setupTest()
 
     httpmock.Activate()
@@ -216,18 +213,17 @@ func TestHystrixHttpCommand(t *testing.T) {
             ResultFunc: DefaultJsonResultFunc(&dummyHttpResponse{}),
         },
     )
-    assertions.ShouldBeNil(err)
-    assertions.ShouldNotBeNil(response)
+    assert.NoError(t, err)
+    assert.NotNil(t, response)
 
-    // verify result
     result, ok := response.Result.(*dummyHttpResponse)
-    assertions.ShouldBeTrue(ok)
-    assertions.ShouldNotBeNil(result)
-    assertions.ShouldEqual(100, result.ID)
-    assertions.ShouldEqual("testme", result.Title)
+    assert.True(t, ok)
+    assert.NotNil(t, result)
+    assert.Equal(t, 100, result.ID)
+    assert.Equal(t, "testme", result.Title)
 }
 
-func TestHystrixHttpCommandWithTimeout(t *testing.T) {
+func TestHystrixHttpCommand_ExpectError_WithTimeout(t *testing.T) {
     setupTest()
 
     httpmock.Activate()
@@ -264,6 +260,9 @@ func TestHystrixHttpCommandWithTimeout(t *testing.T) {
             ResultFunc: DefaultJsonResultFunc(&dummyHttpResponse{}),
         },
     )
-    assert.Error(t, err, "we must get error from hystrix http command")
-    assert.Nil(t, response, "We must have nil response - api timed out")
+    assert.Error(t, err)
+    assert.Nil(t, response)
+    obj, ok := err.GetObject().(Response)
+    assert.True(t, ok)
+    assert.Equal(t, 500, obj.StatusCode)
 }

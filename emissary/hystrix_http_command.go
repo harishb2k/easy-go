@@ -3,6 +3,7 @@ package emissary
 import (
     "github.com/afex/hystrix-go/hystrix"
     "github.com/harishb2k/easy-go/basic"
+    "github.com/harishb2k/easy-go/easy"
 )
 
 type HystrixHttpCommand struct {
@@ -34,9 +35,9 @@ func (c *HystrixHttpCommand) Setup(logger basic.Logger) (err error) {
 }
 
 // Execute a request
-func (c *HystrixHttpCommand) Execute(request *Request) (response *Response, err error) {
+func (c *HystrixHttpCommand) Execute(request *Request) (response *Response, err easy.Error) {
 
-    _error := make(chan error, 1)
+    _error := make(chan easy.Error, 1)
     _output := make(chan *Response, 1)
     hystrixError := hystrix.Go(c.commandName(), func() (error) {
         if result, err := c.HttpCommand.Execute(request); err != nil {
@@ -63,6 +64,10 @@ func (c *HystrixHttpCommand) Execute(request *Request) (response *Response, err 
         c.Error("HystrixHttpCommand: error to run command - ", "command=", c.commandName(), "error=", err)
         close(_output)
         close(_error)
-        return nil, err
+        return nil, &easy.ErrorObj{
+            Err:         err,
+            Name:        "hystrix_error",
+            Description: "Got hystrix error",
+        }
     }
 }

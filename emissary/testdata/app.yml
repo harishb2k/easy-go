@@ -41,7 +41,7 @@ emissaryConfiguration:
           maxRequestQueueSize: 100
           requestTimeout: 10000
           elixirEnabled: true
-        updateWith400:
+        updateWithAcceptableCode_400:
           method: GET
           path: /todos/$${id}
           acceptableResponseCodes: [200, 400]
