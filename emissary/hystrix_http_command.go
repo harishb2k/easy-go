@@ -36,22 +36,33 @@ func (c *HystrixHttpCommand) Setup(logger basic.Logger) (err error) {
 // Execute a request
 func (c *HystrixHttpCommand) Execute(request *Request) (response *Response, err error) {
 
+    _error := make(chan error, 1)
     _output := make(chan *Response, 1)
-
     hystrixError := hystrix.Go(c.commandName(), func() (error) {
-
-        result, err := c.HttpCommand.Execute(request);
-        var _ = result
-
-
         if result, err := c.HttpCommand.Execute(request); err != nil {
-            close(_output)
+            _error <- err
         } else {
             _output <- result
         }
         return err
     }, nil)
 
-    var _ = hystrixError
-    return
+    select {
+    case out := <-_output:
+        close(_output)
+        close(_error)
+        return out, nil
+
+    case err := <-_error:
+        c.Error("HystrixHttpCommand: error to run command - ", "command=", c.commandName(), "error=", err)
+        close(_output)
+        close(_error)
+        return nil, err
+
+    case err := <-hystrixError:
+        c.Error("HystrixHttpCommand: error to run command - ", "command=", c.commandName(), "error=", err)
+        close(_output)
+        close(_error)
+        return nil, err
+    }
 }
