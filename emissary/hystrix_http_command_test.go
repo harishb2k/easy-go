@@ -37,7 +37,7 @@ func TestHystrixHttpCommand_ExpectError_WithTimeout(t *testing.T) {
             Url:         "http://jsonplaceholder.typicode.com:80/todos/1",
             Data:        dummyHttpResponseString,
             ResponseObj: &dummyHttpResponse{},
-            Delay:       500,
+            Delay:       5000,
         },
     )
 
@@ -136,6 +136,12 @@ func TestHystrixHttpCommand_ActualServer(t *testing.T) {
             ResultFunc: DefaultJsonResultFunc(&TestServerObject{}),
         },
     )
+    assert.NoError(t, err)
+    assert.NotNil(t, response)
+    result, ok := response.Result.(*TestServerObject)
+    assert.True(t, ok)
+    assert.NotNil(t, result)
+    assert.Equal(t, "TestHystrixHttpCommand_ActualServer Response", result.ResponseStringValue)
 
     if err != nil {
         logger.Debug(err.FormattedDebugString())
@@ -156,11 +162,13 @@ func TestHystrixHttpCommand_ActualServer_HystrixCurcitOpen(t *testing.T) {
         "local", "simpleGetMethodWithError",
         &Request{
             PathParam:  map[string]interface{}{"id": 1},
-            Body:       &TestServerObject{StringValue: "TestHystrixHttpCommand_ActualServer", ErrorCodeToReturn:500},
+            Body:       &TestServerObject{StringValue: "TestHystrixHttpCommand_ActualServer", ErrorCodeToReturn: 500},
             ResultFunc: DefaultJsonResultFunc(&TestServerObject{}),
         },
     )
 
+    assert.Error(t, err)
+    assert.Nil(t, response)
     if err != nil {
         logger.Debug(err.FormattedDebugString())
     } else {
