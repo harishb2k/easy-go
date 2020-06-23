@@ -1,7 +1,9 @@
 package emissary
 
 import (
+    "fmt"
     "github.com/harishb2k/easy-go/basic"
+    "github.com/harishb2k/easy-go/easy"
     . "github.com/harishb2k/easy-go/test_http"
     "github.com/jarcoal/httpmock"
     "github.com/smartystreets/assertions"
@@ -174,6 +176,10 @@ func TestHttpCommandWithTimeout(t *testing.T) {
     )
     assert.Error(t, err, "we must get error from http command")
     assert.Nil(t, response, "We must have nil response - api timed out")
+    if errorResponse, ok := err.(*easy.ErrorObj); ok {
+        fmt.Println("Error From Http Call - ", errorResponse)
+    }
+
 }
 
 func TestHystrixHttpCommand(t *testing.T) {

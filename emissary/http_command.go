@@ -2,7 +2,6 @@ package emissary
 
 import (
     "context"
-    "errors"
     "github.com/google/uuid"
     "github.com/harishb2k/easy-go/basic"
     "github.com/harishb2k/easy-go/easy"
@@ -39,7 +38,8 @@ func (c *HttpCommand) Setup(logger basic.Logger) (err error) {
 }
 
 // Execute a request
-func (c *HttpCommand) Execute(request *Request) (response *Response, err error) {
+func (c *HttpCommand) Execute(request *Request) (response *Response, e easy.Error) {
+    var err error
     requestId := uuid.New().String()
 
     // Setup http timeout to kill request if it takes longer
@@ -54,7 +54,12 @@ func (c *HttpCommand) Execute(request *Request) (response *Response, err error) 
     switch c.Api.Method {
     case "GET":
         if httpRequest, err = http.NewRequest("GET", url, nil); err != nil {
-            return nil, errors.New("Failed to create http request for " + c.commandName())
+            return nil, &easy.ErrorObj{
+                Err:         err,
+                Name:        "http_call_failed",
+                Description: "Failed to create http request for " + c.commandName(),
+                Object:      Response{StatusCode: 500, Status: "Unknown"},
+            }
         }
         break
     }
@@ -62,10 +67,11 @@ func (c *HttpCommand) Execute(request *Request) (response *Response, err error) 
     // Make http call
     var httpResponse *http.Response;
     if httpResponse, err = http.DefaultClient.Do(httpRequest.WithContext(ctx)); err != nil {
-        return nil, easy.Error{
+        return nil, &easy.ErrorObj{
             Err:         err,
             Name:        "http_call_failed",
             Description: "Http request failed with error " + c.commandName() + " " + err.Error(),
+            Object:      Response{StatusCode: 500, Status: "Unknown"},
         }
     }
     defer httpResponse.Body.Close()
@@ -110,8 +116,19 @@ func (c *HttpCommand) populateResponse(reqId string, request *Request, response 
 
     // Read body from Http response
     if httpResponse.Body != nil {
-        response.ResponseBody, response.Error = ioutil.ReadAll(httpResponse.Body);
-        if response.Error != nil || response.ResponseBody == nil || len(response.ResponseBody) <= 0 {
+
+        var err error
+        response.ResponseBody, err = ioutil.ReadAll(httpResponse.Body);
+
+        // Setup correct error
+        response.SerErrorIfNotNil(&easy.ErrorObj{
+            Err:         err,
+            Name:        "http_call_failed",
+            Description: "Failed dto read http response body",
+            Object:      Response{StatusCode: 500, Status: "Unknown"},
+        })
+
+        if response.HasError() || response.DoesNotHvaeResponseBody() {
             return
         }
     }
