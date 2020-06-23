@@ -23,7 +23,7 @@ type dummyHttpResponse struct {
 
 var dummyHttpResponseString = `{
                 "userId": 1,  
-                "id": 1,
+                "id": 100,
                 "title": "testme", 
                 "completed": false
         }`
@@ -51,8 +51,13 @@ func TestHttpCommand(t *testing.T) {
     api.Name = "update"
 
     // Setup dummy http response
-    dummyHttpResponseObj := dummyHttpResponse{}
-    SetupGetHttpResponse("http://jsonplaceholder.typicode.com:80/todos/1", dummyHttpResponseString, &dummyHttpResponseObj)
+    SetupMockHttpResponse(
+        HttpMockSpec{
+            Url:         "http://jsonplaceholder.typicode.com:80/todos/1",
+            Data:        dummyHttpResponseString,
+            ResponseObj: &dummyHttpResponse{},
+        },
+    )
 
     // Make http command and set it up
     httpCommand := NewHttpCommand(
@@ -75,4 +80,51 @@ func TestHttpCommand(t *testing.T) {
     result, ok := response.Result.(*dummyHttpResponse)
     assertions.ShouldBeTrue(ok)
     assertions.ShouldNotBeNil(result)
+    assertions.ShouldEqual(100, result.ID)
+    assertions.ShouldEqual("testme", result.Title)
+}
+
+func TestHttpCommandWithError400(t *testing.T) {
+    httpmock.Activate()
+    defer httpmock.DeactivateAndReset()
+
+    // Get service and api from config
+    service := config.EmissaryConfiguration.ServiceList["serviceB"]
+    api := service.ApiList["updateWith400"]
+    service.Name = "serviceB"
+    api.Name = "updateWith400"
+
+    // Setup dummy http response
+    SetupMockHttpResponse(
+        HttpMockSpec{
+            Url:         "http://jsonplaceholder.typicode.com:80/todos/1",
+            Data:        dummyHttpResponseString,
+            ResponseObj: &dummyHttpResponse{},
+            StatusCode:  400,
+        },
+    )
+
+    // Make http command and set it up
+    httpCommand := NewHttpCommand(
+        service,
+        api,
+        basic.DefaultLogger{},
+    )
+
+    // Make Http call
+    response, err := httpCommand.Execute(
+        &Request{
+            PathParam:  map[string]interface{}{"id": 1},
+            ResultFunc: DefaultJsonResultFunc(&dummyHttpResponse{}),
+        },
+    )
+    assertions.ShouldBeNil(err)
+    assertions.ShouldNotBeNil(response)
+
+    // verify result
+    result, ok := response.Result.(*dummyHttpResponse)
+    assertions.ShouldBeTrue(ok)
+    assertions.ShouldNotBeNil(result)
+    assertions.ShouldEqual(100, result.ID)
+    assertions.ShouldEqual(400, response.StatusCode)
 }

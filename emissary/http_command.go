@@ -70,6 +70,9 @@ func (c *HttpCommand) Execute(request *Request) (response *Response, err error) 
     c.populateResponse(requestId, request, response, httpResponse)
     c.Debug(requestId, "HttpCommand: response -", "statusCode=", response.StatusCode, "result=", response.Result, "error=", response.Error)
 
+    // See if we accept a error
+    c.handleAcceptedCodes(requestId, response)
+
     return response, response.Error
 }
 
@@ -111,5 +114,27 @@ func (c *HttpCommand) populateResponse(reqId string, request *Request, response 
     // Convert http response to requested Pojo
     if request.ResultFunc != nil {
         response.Result, response.Error = request.ResultFunc(response.ResponseBody)
+    }
+}
+
+// Populate response
+func (c *HttpCommand) handleAcceptedCodes(reqId string, response *Response) {
+    response.OriginalError = response.Error
+
+    var accepted = false
+    if c.Api.AcceptableResponseCodes != nil && len(c.Api.AcceptableResponseCodes) > 0 {
+        for c := range c.Api.AcceptableResponseCodes {
+            if c == response.StatusCode {
+                accepted = true
+            }
+        }
+    } else {
+        if response.StatusCode >= 200 && response.StatusCode < 300 {
+            accepted = true
+        }
+    }
+
+    if accepted {
+        response.Error = nil
     }
 }

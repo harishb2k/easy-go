@@ -22,11 +22,12 @@ type Request struct {
 
 // A HTTP response
 type Response struct {
-    Result       interface{}
-    ResponseBody []byte
-    StatusCode   int
-    Status       string
-    Error        error
+    Result        interface{}
+    ResponseBody  []byte
+    StatusCode    int
+    Status        string
+    Error         error
+    OriginalError error
 }
 
 type Command interface {

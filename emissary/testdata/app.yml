@@ -33,9 +33,18 @@ emissaryConfiguration:
           requestTimeout: 10000
           elixirEnabled: true
         updateGet:
-          method: POST
-          path: /v1/order/state/update
+          method: GET
+          path: /todos/$${id}
           acceptableResponseCodes: [200]
+          connectionRequestTimeout: 50
+          concurrency: 4
+          maxRequestQueueSize: 100
+          requestTimeout: 10000
+          elixirEnabled: true
+        updateWith400:
+          method: GET
+          path: /todos/$${id}
+          acceptableResponseCodes: [200, 400]
           connectionRequestTimeout: 50
           concurrency: 4
           maxRequestQueueSize: 100
