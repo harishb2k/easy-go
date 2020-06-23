@@ -1,6 +1,7 @@
 package emissary
 
 import (
+    "fmt"
     "github.com/harishb2k/easy-go/basic"
     "github.com/harishb2k/easy-go/easy"
 )
@@ -56,4 +57,8 @@ func (r *Response) HasError() bool {
 
 func (r *Response) DoesNotHvaeResponseBody() bool {
     return r.ResponseBody == nil || len(r.ResponseBody) <= 0
+}
+
+func (r *Response) FormattedDebugString() string {
+    return fmt.Sprintf("StatusCode=%d \nError=%v \nResponse=%v ", r.StatusCode, r.Error, r.Result)
 }

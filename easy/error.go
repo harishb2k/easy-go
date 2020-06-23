@@ -1,11 +1,14 @@
 package easy
 
+import "fmt"
+
 type Error interface {
     error
     GetName() string
     GetDescription() string
     GetError() error
     GetObject() interface{}
+    FormattedDebugString() string
 }
 
 type ErrorObj struct {
@@ -40,4 +43,8 @@ func (e *ErrorObj) GetError() error {
 
 func (e *ErrorObj) GetObject() interface{} {
     return e.Object
+}
+
+func (e *ErrorObj) FormattedDebugString() string {
+    return fmt.Sprintf("Name=%s \nDescription=%s \nErr=%v \nObject=%v", e.Name, e.Description, e.Err, e.Object)
 }
