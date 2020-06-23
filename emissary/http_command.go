@@ -1,11 +1,9 @@
 package emissary
 
 import (
-    "bytes"
     "context"
     "errors"
     "github.com/google/uuid"
-    _ "github.com/google/uuid"
     "github.com/harishb2k/easy-go/basic"
     "io/ioutil"
     "net/http"
@@ -20,13 +18,13 @@ type HttpCommand struct {
     basic.Logger
 }
 
-// Build command name for hystrix
-func (c *HttpCommand) commandName() (string) {
-    return c.Service.Name + "_" + c.Api.Name
-}
-
-func (c *HttpCommand) getUrl() (string) {
-    return c.Service.Type + "://" + c.Service.Host + ":" + strconv.Itoa(c.Service.Port) + c.Api.Path;
+func NewHttpCommand(service Service, api Api, logger basic.Logger) (HttpCommand) {
+    command := HttpCommand{
+        Service: service,
+        Api:     api,
+    }
+    command.Setup(logger)
+    return command
 }
 
 // Setup this command
@@ -39,28 +37,18 @@ func (c *HttpCommand) Setup(logger basic.Logger) (err error) {
     return nil
 }
 
-// Make Http Request
-func (c *HttpCommand) Execute(request CommandRequest) (result interface{}, err error) {
+// Execute a request
+func (c *HttpCommand) Execute(request *Request) (response *Response, err error) {
     requestId := uuid.New().String()
 
     // Setup http timeout to kill request if it takes longer
     ctx, cancel := context.WithTimeout(context.Background(), time.Duration(c.Api.RequestTimeout)*time.Millisecond)
     defer cancel()
 
-    var url = c.getUrl()
-    c.Debug(requestId, c.commandName(), "URL", url)
+    // Build a URL with path param
+    var url = c.getUrl(requestId, request)
 
-    // Update URL with all input params
-    if request.PathParamFunc != nil {
-        var pathParam = request.PathParamFunc()
-        if pathParam != nil {
-            for key, value := range pathParam {
-                url = strings.Replace(url, "$${"+key+"}", Stringify(value), 1)
-            }
-        }
-    }
-    c.Debug(requestId, c.commandName(), "Modified URL", url)
-
+    // Make correct http request
     var httpRequest *http.Request;
     switch c.Api.Method {
     case "GET":
@@ -68,34 +56,6 @@ func (c *HttpCommand) Execute(request CommandRequest) (result interface{}, err e
             return nil, errors.New("Failed to create http request for " + c.commandName())
         }
         break
-
-    case "POST":
-        var body *bytes.Buffer;
-        if request.BodyFunc != nil {
-            bodyData := request.BodyFunc()
-            if bodyData != nil {
-                body = bytes.NewBuffer(bodyData)
-            }
-        }
-        if httpRequest, err = http.NewRequest("POST", url, body); err != nil {
-            return nil, errors.New("Failed to create http request for " + c.commandName() + " " + err.Error())
-        }
-        break
-    }
-
-    // Setup headers
-    if request.HeaderParamFunc != nil {
-        headers := request.HeaderParamFunc();
-        if headers != nil {
-            for key, value := range headers {
-                httpRequest.Header.Set(key, value)
-            }
-        }
-    }
-
-    // Setup default content-type (if missing)
-    if httpRequest.Header.Get("Content-Type") == "" && httpRequest.Header.Get("content-type") == "" {
-        httpRequest.Header.Add("Content-Type", "application/json");
     }
 
     // Make http call
@@ -105,19 +65,51 @@ func (c *HttpCommand) Execute(request CommandRequest) (result interface{}, err e
     }
     defer httpResponse.Body.Close()
 
-    // Read response body
-    var body []byte;
+    // Fill response object from http response
+    response = &Response{}
+    c.populateResponse(requestId, request, response, httpResponse)
+    c.Debug(requestId, "HttpCommand: response -", "statusCode=", response.StatusCode, "result=", response.Result, "error=", response.Error)
+
+    return response, response.Error
+}
+
+// Build command name for hystrix or debug name
+func (c *HttpCommand) commandName() (string) {
+    return c.Service.Name + "_" + c.Api.Name
+}
+
+// Make a URL from command
+func (c *HttpCommand) getUrl(reqId string, request *Request) (string) {
+
+    var url = c.Service.Type + "://" + c.Service.Host + ":" + strconv.Itoa(c.Service.Port) + c.Api.Path
+    c.Debug(reqId, "HttpCommand: url=", url)
+
+    if request.PathParam != nil {
+        for key, value := range request.PathParam {
+            url = strings.Replace(url, "$${"+key+"}", basic.Stringify(value), 1)
+        }
+        c.Debug(reqId, "HttpCommand: after path param replacement url=", url)
+    }
+
+    return url
+}
+
+// Populate response
+func (c *HttpCommand) populateResponse(reqId string, request *Request, response *Response, httpResponse *http.Response) {
+
+    response.StatusCode = httpResponse.StatusCode
+    response.Status = httpResponse.Status
+
+    // Read body from Http response
     if httpResponse.Body != nil {
-        if body, err = ioutil.ReadAll(httpResponse.Body); err != nil {
-            return nil, errors.New("Failed to read http response" + c.commandName() + " " + err.Error())
+        response.ResponseBody, response.Error = ioutil.ReadAll(httpResponse.Body);
+        if response.Error != nil || response.ResponseBody == nil || len(response.ResponseBody) <= 0 {
+            return
         }
     }
 
-    if request.ResultFunc != nil && body != nil && len(body) > 0 {
-        result, err = request.ResultFunc(body)
-        c.Debug(requestId, c.commandName(), "ResultFunc Output", result, "ResultFunc Error", err)
-        return result, err
+    // Convert http response to requested Pojo
+    if request.ResultFunc != nil {
+        response.Result, response.Error = request.ResultFunc(response.ResponseBody)
     }
-
-    return body, nil
 }

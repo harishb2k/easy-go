@@ -2,17 +2,7 @@ package emissary
 
 import (
     "github.com/harishb2k/easy-go/basic"
-    "github.com/jwangsadinata/go-multimap/slicemultimap"
 )
-
-// This function returns a multi-map to provide Query params for HTTP request
-type QueryParamFunc func() (*slicemultimap.MultiMap)
-
-// This function returns a multi-map to provide Path params for HTTP request
-type PathParamFunc func() (map[string]interface{})
-
-// This function returns a map to provide headers for HTTP request
-type HeaderParamFunc func() (map[string]string)
 
 // This function returns body for HTTP request
 type BodyFunc func() ([]byte)
@@ -21,48 +11,28 @@ type BodyFunc func() ([]byte)
 type ResultFunc func([]byte) (interface{}, error)
 
 // A HTTP request
-type CommandRequest struct {
-    QueryParamFunc  QueryParamFunc;
-    PathParamFunc   PathParamFunc;
-    HeaderParamFunc HeaderParamFunc;
-    BodyFunc        BodyFunc;
-    ResultFunc      ResultFunc;
+type Request struct {
+    PathParam  map[string]interface{}
+    QueryParam []interface{}
+    Header     map[string]interface{}
+    Body       interface{}
+    BodyFunc   BodyFunc
+    ResultFunc ResultFunc
 }
 
-// This is a command interface. A valid implementation would be HTTP
+// A HTTP response
+type Response struct {
+    Result       interface{}
+    ResponseBody []byte
+    StatusCode   int
+    Status       string
+    Error        error
+}
+
 type Command interface {
-    // Setup a command at boot time
+    // A method to setup a command when it is initialized by emissary framework
     Setup(logger basic.Logger) (err error)
 
-    // Execute command with given info
-    Execute(request CommandRequest) (interface{}, error)
-}
-
-// This is a complete Emissary context - this context contains all service and api commands
-type CommandContext struct {
-    commandList    map[string]map[string]Command
-    DisableLogging bool
-    logger         basic.Logger
-}
-
-func NewCommandContext(configuration *Configuration, logger basic.Logger) (ctx CommandContext, err error) {
-    ctx = CommandContext{
-        commandList: map[string]map[string]Command{},
-        logger:      logger,
-    }
-    ctx.Setup(configuration)
-    return ctx, nil
-}
-
-// This will read YAML and make all Http Commands
-func (ctx *CommandContext) Setup(configuration *Configuration) (err error) {
-    for serviceName, service := range configuration.ServiceList {
-        service.Name = serviceName
-        ctx.commandList[serviceName] = map[string]Command{};
-        for apiName, api := range service.ApiList {
-            api.Name = apiName
-            ctx.commandList[serviceName][apiName] = NewHystrixHttpCommand(service, api, ctx.logger)
-        }
-    }
-    return nil
+    // Execute a request
+    Execute(request *Request) (response *Response, err error)
 }
