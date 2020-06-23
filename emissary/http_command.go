@@ -1,9 +1,12 @@
 package emissary
 
 import (
+    "bytes"
     "context"
+    "errors"
     "github.com/google/uuid"
     "github.com/harishb2k/easy-go/easy"
+    "io"
     "io/ioutil"
     "net/http"
     "strconv"
@@ -48,11 +51,27 @@ func (c *HttpCommand) Execute(request *Request) (response *Response, e easy.Erro
     // Build a URL with path param
     var url = c.getUrl(requestId, request)
 
+    var payload []byte
+    var body io.Reader
+
+    if request.Body != nil {
+        if payload, err = easy.BytesWithError(request.Body); err != nil {
+            return nil, &easy.ErrorObj{
+                Err:         err,
+                Name:        "http_call_failed",
+                Description: "Failed to convert object to byte body for " + c.commandName(),
+                Object:      &Response{StatusCode: 500, Status: "Unknown"},
+            }
+        } else if payload != nil {
+            body = bytes.NewReader(payload)
+        }
+    }
+
     // Make correct http request
     var httpRequest *http.Request;
     switch c.Api.Method {
     case "GET":
-        if httpRequest, err = http.NewRequest("GET", url, nil); err != nil {
+        if httpRequest, err = http.NewRequest("GET", url, body); err != nil {
             return nil, &easy.ErrorObj{
                 Err:         err,
                 Name:        "http_call_failed",
@@ -80,10 +99,11 @@ func (c *HttpCommand) Execute(request *Request) (response *Response, e easy.Erro
     c.populateResponse(requestId, request, response, httpResponse)
     c.Debug(requestId, "HttpCommand: response -", "statusCode=", response.StatusCode, "result=", response.Result, "error=", response.Error)
 
-    // See if we accept a error
-    c.handleAcceptedCodes(requestId, response)
-
-    return response, response.Error
+    if response.Error == nil {
+        return response, response.Error
+    } else {
+        return nil, response.Error
+    }
 }
 
 // Build command name for hystrix or debug name
@@ -109,40 +129,60 @@ func (c *HttpCommand) getUrl(reqId string, request *Request) (string) {
 
 // Populate response
 func (c *HttpCommand) populateResponse(reqId string, request *Request, response *Response, httpResponse *http.Response) {
+    var err error
+    var acceptedErr error
 
     response.StatusCode = httpResponse.StatusCode
     response.Status = httpResponse.Status
 
+    if response.StatusCode >= 200 && response.StatusCode < 300 {
+        // No-OP
+    } else if c.Api.AcceptableResponseCodes != nil && len(c.Api.AcceptableResponseCodes) > 0 {
+        var accepted = false
+        for _, c := range c.Api.AcceptableResponseCodes {
+            if c == response.StatusCode {
+                accepted = true
+                break
+            }
+        }
+        if !accepted {
+            acceptedErr = errors.New("request failed with statusCode=" + strconv.Itoa(response.StatusCode) + " status=" + response.Status)
+        }
+    } else {
+        acceptedErr = errors.New("request failed with statusCode=" + strconv.Itoa(response.StatusCode) + " status=" + response.Status)
+    }
+
     // Read body from Http response
     if httpResponse.Body != nil {
+        if body, err := ioutil.ReadAll(httpResponse.Body); err == nil {
+            response.ResponseBody = body
+        }
+    }
 
-        var err error
-        response.ResponseBody, err = ioutil.ReadAll(httpResponse.Body);
-
-        // Setup correct error
+    if err == nil && acceptedErr == nil {
+        if request.ResultFunc != nil {
+            response.Result, response.Error = request.ResultFunc(response.ResponseBody)
+        }
+    } else if acceptedErr != nil {
+        response.SerErrorIfNotNil(&easy.ErrorObj{
+            Err:         acceptedErr,
+            Name:        "http_call_failed",
+            Description: "Failed dto read http response body",
+            Object:      &Response{StatusCode: 500, Status: "Unknown"},
+        })
+    } else if err != nil {
         response.SerErrorIfNotNil(&easy.ErrorObj{
             Err:         err,
             Name:        "http_call_failed",
             Description: "Failed dto read http response body",
             Object:      &Response{StatusCode: 500, Status: "Unknown"},
         })
-
-        if response.HasError() || response.DoesNotHvaeResponseBody() {
-            return
-        }
-    }
-
-    // Convert http response to requested Pojo
-    if request.ResultFunc != nil {
-        response.Result, response.Error = request.ResultFunc(response.ResponseBody)
     }
 }
 
 // Populate response
-func (c *HttpCommand) handleAcceptedCodes(reqId string, response *Response) {
-    response.OriginalError = response.Error
+func (c *HttpCommand) handleAcceptedCodes(reqId string, response *Response) (accepted bool) {
 
-    var accepted = false
     if c.Api.AcceptableResponseCodes != nil && len(c.Api.AcceptableResponseCodes) > 0 {
         for c := range c.Api.AcceptableResponseCodes {
             if c == response.StatusCode {
@@ -158,4 +198,6 @@ func (c *HttpCommand) handleAcceptedCodes(reqId string, response *Response) {
     if accepted {
         response.Error = nil
     }
+
+    return
 }

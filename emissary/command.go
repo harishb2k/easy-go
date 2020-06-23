@@ -59,9 +59,13 @@ func (r *Response) DoesNotHvaeResponseBody() bool {
 }
 
 func (r *Response) FormattedDebugString() string {
-    fmt.Println(r)
-    fmt.Println(r.Status)
-    fmt.Println(r.Error)
-    fmt.Println(r.Result)
-    return fmt.Sprintf("StatusCode=%d \nError=%v \nResponse=%v ", r.StatusCode, r.Error, r.Result)
+    if r.Result != nil {
+        if resultString, err := easy.StringifyWithError(r.Result); err == nil {
+            return fmt.Sprintf("StatusCode=%d \nError=%v \nResponse=%s ", r.StatusCode, r.Error, resultString)
+        } else {
+            return fmt.Sprintf("StatusCode=%d \nError=%v \nResponse=%v", r.StatusCode, r.Error, r.Result)
+        }
+    } else {
+        return fmt.Sprintf("StatusCode=%d \nError=%v \nResponse=%v", r.StatusCode, r.Error, r.Result)
+    }
 }

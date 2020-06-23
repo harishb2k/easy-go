@@ -10,6 +10,14 @@ func Stringify(input interface{}) (string) {
     return result
 }
 
+func Objectify(data []byte, obj interface{}) (err error) {
+    return json.Unmarshal(data, &obj)
+}
+
+func ObjectifyString(data string, obj interface{}) (err error) {
+    return Objectify([]byte(data), obj)
+}
+
 func StringifyWithError(input interface{}) (string, error) {
     switch v := input.(type) {
     case int:
@@ -29,5 +37,16 @@ func StringifyWithError(input interface{}) (string, error) {
             return "", err
         }
         return string(out), nil
+    }
+}
+
+func BytesWithError(input interface{}) ([]byte, error) {
+    switch v := input.(type) {
+    default:
+        out, err := json.Marshal(v)
+        if err != nil {
+            return nil, err
+        }
+        return out, err
     }
 }

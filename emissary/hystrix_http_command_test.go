@@ -4,6 +4,7 @@ import (
     "errors"
     "github.com/afex/hystrix-go/hystrix"
     . "github.com/harishb2k/easy-go/test_http"
+    "github.com/harishb2k/easy-go/tools"
     "github.com/jarcoal/httpmock"
     "github.com/stretchr/testify/assert"
     "sync"
@@ -11,6 +12,10 @@ import (
     "testing"
     "time"
 )
+
+func init() {
+    tools.RunServer("12345")
+}
 
 func TestHystrixHttpCommand_ExpectError_WithTimeout(t *testing.T) {
     setupTest()
@@ -113,4 +118,52 @@ func TestHystrixHttpCommand_CircuitOpen(t *testing.T) {
     }
     wg.Wait()
     assert.Equal(t, int32(8), errHystrixRejectionCount)
+}
+
+func TestHystrixHttpCommand_ActualServer(t *testing.T) {
+    setupTest()
+
+    ctx, _ := NewContext(
+        config.EmissaryConfiguration,
+        logger,
+    )
+
+    response, err := ctx.Execute(
+        "local", "simpleGetMethod",
+        &Request{
+            PathParam:  map[string]interface{}{"id": 1},
+            Body:       &TestServerObject{StringValue: "TestHystrixHttpCommand_ActualServer"},
+            ResultFunc: DefaultJsonResultFunc(&TestServerObject{}),
+        },
+    )
+
+    if err != nil {
+        logger.Debug(err.FormattedDebugString())
+    } else {
+        logger.Debug(response.FormattedDebugString())
+    }
+}
+
+func TestHystrixHttpCommand_ActualServer_HystrixCurcitOpen(t *testing.T) {
+    setupTest()
+
+    ctx, _ := NewContext(
+        config.EmissaryConfiguration,
+        logger,
+    )
+
+    response, err := ctx.Execute(
+        "local", "simpleGetMethodWithError",
+        &Request{
+            PathParam:  map[string]interface{}{"id": 1},
+            Body:       &TestServerObject{StringValue: "TestHystrixHttpCommand_ActualServer", ErrorCodeToReturn:500},
+            ResultFunc: DefaultJsonResultFunc(&TestServerObject{}),
+        },
+    )
+
+    if err != nil {
+        logger.Debug(err.FormattedDebugString())
+    } else {
+        logger.Debug(response.FormattedDebugString())
+    }
 }

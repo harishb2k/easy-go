@@ -7,6 +7,18 @@ import (
     "time"
 )
 
+type TestServerObject struct {
+    ErrorCodeToReturn int    `json:"error_code_to_return"`
+    Delay             int    `json:"delay"`
+    StringValue       string `json:"string_value"`
+    IntValue          int    `json:"int_value"`
+    BoolValue         bool   `json:"bool_value"`
+
+    ResponseStringValue string `json:"response_string_value"`
+    ResponseIntValue    int    `json:"response_int_value"`
+    ResponseBoolValue   bool   `json:"response_bool_value"`
+}
+
 type HttpMockSpec struct {
     Method      string
     Url         string
@@ -28,8 +40,7 @@ func (spec *HttpMockSpec) setupDefault() {
 func SetupMockHttpResponse(spec HttpMockSpec) {
     spec.setupDefault()
 
-    if err := json.Unmarshal([]byte(spec.Data), spec.ResponseObj);
-        err != nil {
+    if err := json.Unmarshal([]byte(spec.Data), spec.ResponseObj); err != nil {
         panic(err)
     }
 

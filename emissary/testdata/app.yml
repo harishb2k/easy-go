@@ -4,6 +4,29 @@ emissaryConfiguration:
     enableNewRelicLogging: true
     newRelicLoggingPrefix: SomeApp-NewRelic
   services:
+    local:
+      type: http
+      host: localhost
+      port: 12345
+      apis:
+        simpleGetMethod:
+          method: GET
+          path: /v1/simpleGetMethod
+          acceptableResponseCodes: [200]
+          connectionRequestTimeout: 50
+          concurrency: 4
+          maxRequestQueueSize: 100
+          requestTimeout: 10000
+          elixirEnabled: true
+        simpleGetMethodWithError:
+          method: GET
+          path: /v1/simpleGetMethodWithError
+          acceptableResponseCodes: [200]
+          connectionRequestTimeout: 50
+          concurrency: 4
+          maxRequestQueueSize: 100
+          requestTimeout: 10000
+          elixirEnabled: true
     serviceA:
       type: http
       host: jsonplaceholder.typicode.com
