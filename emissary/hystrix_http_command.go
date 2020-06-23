@@ -36,38 +36,37 @@ func (c *HystrixHttpCommand) Setup(logger easy.Logger) (err error) {
 
 // Execute a request
 func (c *HystrixHttpCommand) Execute(request *Request) (response *Response, err easy.Error) {
-
-    _error := make(chan easy.Error, 1)
-    _output := make(chan *Response, 1)
+    errorChannel := make(chan easy.Error, 1)
+    responseOutputChannel := make(chan *Response, 1)
     hystrixError := hystrix.Go(c.commandName(), func() (error) {
         if result, err := c.HttpCommand.Execute(request); err != nil {
-            _error <- err
+            errorChannel <- err
+            return err
         } else {
-            _output <- result
+            responseOutputChannel <- result
+            return nil
         }
-        return err
     }, nil)
 
     select {
-    case out := <-_output:
-        close(_output)
-        close(_error)
+    case out := <-responseOutputChannel:
+        close(responseOutputChannel)
+        close(errorChannel)
         return out, nil
 
-    case err := <-_error:
+    case err := <-errorChannel:
         c.Error("HystrixHttpCommand: error to run command - ", "command=", c.commandName(), "error=", err)
-        close(_output)
-        close(_error)
+        close(responseOutputChannel)
+        close(errorChannel)
         return nil, err
 
     case err := <-hystrixError:
         c.Error("HystrixHttpCommand: error to run command - ", "command=", c.commandName(), "error=", err)
-        close(_output)
-        close(_error)
         return nil, &easy.ErrorObj{
             Err:         err,
             Name:        "hystrix_error",
             Description: "Got hystrix error",
+            Object:      &Response{StatusCode: 500, Status: "Unknown"},
         }
     }
 }

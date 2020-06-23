@@ -57,7 +57,7 @@ func (c *HttpCommand) Execute(request *Request) (response *Response, e easy.Erro
                 Err:         err,
                 Name:        "http_call_failed",
                 Description: "Failed to create http request for " + c.commandName(),
-                Object:      Response{StatusCode: 500, Status: "Unknown"},
+                Object:      &Response{StatusCode: 500, Status: "Unknown"},
             }
         }
         break
@@ -70,7 +70,7 @@ func (c *HttpCommand) Execute(request *Request) (response *Response, e easy.Erro
             Err:         err,
             Name:        "http_call_failed",
             Description: "Http request failed with error " + c.commandName() + " " + err.Error(),
-            Object:      Response{StatusCode: 500, Status: "Unknown"},
+            Object:      &Response{StatusCode: 500, Status: "Unknown"},
         }
     }
     defer httpResponse.Body.Close()
@@ -124,7 +124,7 @@ func (c *HttpCommand) populateResponse(reqId string, request *Request, response 
             Err:         err,
             Name:        "http_call_failed",
             Description: "Failed dto read http response body",
-            Object:      Response{StatusCode: 500, Status: "Unknown"},
+            Object:      &Response{StatusCode: 500, Status: "Unknown"},
         })
 
         if response.HasError() || response.DoesNotHvaeResponseBody() {

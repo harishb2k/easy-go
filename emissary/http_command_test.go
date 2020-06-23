@@ -176,7 +176,7 @@ func TestHttpCommand_ExpectSuccess_ServerTimeout(t *testing.T) {
     )
     assert.Error(t, err)
     assert.Nil(t, response)
-    obj, ok := err.GetObject().(Response)
+    obj, ok := err.GetObject().(*Response)
     assert.True(t, ok)
     assert.Equal(t, 500, obj.StatusCode)
 }
@@ -266,7 +266,7 @@ func TestHystrixHttpCommand_ExpectError_WithTimeout(t *testing.T) {
     )
     assert.Error(t, err)
     assert.Nil(t, response)
-    obj, ok := err.GetObject().(Response)
+    obj, ok := err.GetObject().(*Response)
     assert.True(t, ok)
     assert.Equal(t, 500, obj.StatusCode)
 }
