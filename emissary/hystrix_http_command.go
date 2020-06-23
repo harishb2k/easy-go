@@ -1,6 +1,7 @@
 package emissary
 
 import (
+    "errors"
     "github.com/afex/hystrix-go/hystrix"
     "github.com/harishb2k/easy-go/easy"
 )
@@ -63,10 +64,22 @@ func (c *HystrixHttpCommand) Execute(request *Request) (response *Response, err 
     case err := <-hystrixError:
         c.Error("HystrixHttpCommand: error to run command - ", "command=", c.commandName(), "error=", err)
         return nil, &easy.ErrorObj{
-            Err:         err,
-            Name:        "hystrix_error",
-            Description: "Got hystrix error",
+            Err:         hystrixErrorToInternalError(err),
+            Name:        hystrixErrorToInternalError(err).Error(),
+            Description: "Got hystrix error = " + hystrixErrorToInternalError(err).Error(),
             Object:      &Response{StatusCode: 500, Status: "Unknown"},
         }
+    }
+}
+
+func hystrixErrorToInternalError(err error) (error) {
+    if errors.Is(err, hystrix.ErrMaxConcurrency) {
+        return ErrHystrixRejection
+    } else if errors.Is(err, hystrix.ErrCircuitOpen) {
+        return ErrHystrixCircuitOpen
+    } else if errors.Is(err, hystrix.ErrTimeout) {
+        return ErrHystrixTimeout
+    } else {
+        return ErrHystrixUnknown
     }
 }

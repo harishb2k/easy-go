@@ -50,3 +50,12 @@ emissaryConfiguration:
           maxRequestQueueSize: 100
           requestTimeout: 10000
           elixirEnabled: true
+        updateWithCircuitOpenCase:
+          method: GET
+          path: /todos/$${id}
+          acceptableResponseCodes: [200, 400]
+          connectionRequestTimeout: 50
+          concurrency: 2
+          maxRequestQueueSize: 100
+          requestTimeout: 10000
+          elixirEnabled: true

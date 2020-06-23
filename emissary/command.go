@@ -59,5 +59,9 @@ func (r *Response) DoesNotHvaeResponseBody() bool {
 }
 
 func (r *Response) FormattedDebugString() string {
+    fmt.Println(r)
+    fmt.Println(r.Status)
+    fmt.Println(r.Error)
+    fmt.Println(r.Result)
     return fmt.Sprintf("StatusCode=%d \nError=%v \nResponse=%v ", r.StatusCode, r.Error, r.Result)
 }

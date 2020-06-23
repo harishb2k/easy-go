@@ -1,7 +1,6 @@
 package emissary
 
 import (
-    "github.com/afex/hystrix-go/hystrix"
     . "github.com/harishb2k/easy-go/easy"
     . "github.com/harishb2k/easy-go/test_http"
     "github.com/jarcoal/httpmock"
@@ -224,49 +223,4 @@ func TestHystrixHttpCommand_ExpectSuccess(t *testing.T) {
     assert.NotNil(t, result)
     assert.Equal(t, 100, result.ID)
     assert.Equal(t, "testme", result.Title)
-}
-
-func TestHystrixHttpCommand_ExpectError_WithTimeout(t *testing.T) {
-    setupTest()
-    hystrix.Flush()
-
-    httpmock.Activate()
-    defer httpmock.DeactivateAndReset()
-
-    // Get service and api from config
-    service := config.EmissaryConfiguration.ServiceList["serviceA"]
-    api := service.ApiList["update"]
-    service.Name = "serviceA"
-    api.Name = "update"
-    api.RequestTimeout = 5
-
-    // Setup dummy http response
-    SetupMockHttpResponse(
-        HttpMockSpec{
-            Url:         "http://jsonplaceholder.typicode.com:80/todos/1",
-            Data:        dummyHttpResponseString,
-            ResponseObj: &dummyHttpResponse{},
-            Delay:       500,
-        },
-    )
-
-    // Make http command and set it up
-    httpCommand := NewHystrixHttpCommand(
-        service,
-        api,
-        logger,
-    )
-
-    // Make Http call
-    response, err := httpCommand.Execute(
-        &Request{
-            PathParam:  map[string]interface{}{"id": 1},
-            ResultFunc: DefaultJsonResultFunc(&dummyHttpResponse{}),
-        },
-    )
-    assert.Error(t, err)
-    assert.Nil(t, response)
-    obj, ok := err.GetObject().(*Response)
-    assert.True(t, ok)
-    assert.Equal(t, 500, obj.StatusCode)
 }

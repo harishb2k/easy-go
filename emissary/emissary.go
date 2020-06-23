@@ -1,6 +1,16 @@
 package emissary
 
-import "github.com/harishb2k/easy-go/easy"
+import (
+    "errors"
+    "github.com/harishb2k/easy-go/easy"
+)
+
+var (
+    ErrHystrixRejection   = errors.New("hystrix_error_rejection")
+    ErrHystrixCircuitOpen = errors.New("hystrix_error_circuit_open")
+    ErrHystrixTimeout     = errors.New("hystrix_error_timeout")
+    ErrHystrixUnknown     = errors.New("hystrix_error_unknown")
+)
 
 // Client Config e.g. client name etc for logging
 type ClientConfiguration struct {
