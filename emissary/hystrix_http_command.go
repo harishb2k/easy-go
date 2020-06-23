@@ -17,6 +17,7 @@ func NewHystrixHttpCommand(Service Service, Api Api, logger easy.Logger) (*Hystr
             logger,
         ),
     }
+    httpCommand.Setup(logger)
     return &httpCommand
 }
 
