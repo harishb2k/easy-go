@@ -1,6 +1,7 @@
 package emissary
 
 import (
+    "github.com/afex/hystrix-go/hystrix"
     . "github.com/harishb2k/easy-go/easy"
     . "github.com/harishb2k/easy-go/test_http"
     "github.com/jarcoal/httpmock"
@@ -227,6 +228,7 @@ func TestHystrixHttpCommand_ExpectSuccess(t *testing.T) {
 
 func TestHystrixHttpCommand_ExpectError_WithTimeout(t *testing.T) {
     setupTest()
+    hystrix.Flush()
 
     httpmock.Activate()
     defer httpmock.DeactivateAndReset()
