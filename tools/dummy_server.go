@@ -64,6 +64,30 @@ func simpleGetMethodWithError(w http.ResponseWriter, req *http.Request) {
     }
 }
 
+func simplePostMethod(w http.ResponseWriter, req *http.Request) {
+    if obj, err := readTestServerObjectFromRequest(req); err != nil {
+        out := TestServerObject{}
+        out.ResponseStringValue = obj.StringValue + " Response"
+        out.ResponseIntValue = obj.IntValue + 1
+        out.ResponseBoolValue = !obj.BoolValue
+
+        if obj.Delay > 0 {
+            time.Sleep(time.Duration(obj.Delay) * time.Millisecond)
+        }
+
+        out.Headers = map[string]string{}
+        for key, value := range req.Header {
+            out.Headers[key] = value[0]
+        }
+
+        if payloadAsString, err := StringifyWithError(out); err != nil {
+            w.WriteHeader(500)
+        } else {
+            fmt.Fprintf(w, "%s", payloadAsString)
+        }
+    }
+}
+
 func StopServer() {
     if DummyServer != nil {
         if err := DummyServer.Shutdown(context.TODO()); err != nil {
@@ -77,6 +101,7 @@ func RunServer(port string) {
     go func() {
         http.HandleFunc("/v1/simpleGetMethodWithError", simpleGetMethodWithError)
         http.HandleFunc("/v1/simpleGetMethod", simpleGetMethod)
+        http.HandleFunc("/v1/simplePostMethod", simplePostMethod)
         fmt.Println("Running server at {} port", port)
         DummyServer := &http.Server{Addr: ":" + port}
         if err := DummyServer.ListenAndServe(); err != nil {

@@ -18,6 +18,15 @@ emissaryConfiguration:
           maxRequestQueueSize: 100
           requestTimeout: 10000
           elixirEnabled: true
+        simplePostMethod:
+          method: POST
+          path: /v1/simplePostMethod
+          acceptableResponseCodes: [200]
+          connectionRequestTimeout: 50
+          concurrency: 4
+          maxRequestQueueSize: 100
+          requestTimeout: 10000
+          elixirEnabled: true
         simpleGetMethodWithError:
           method: GET
           path: /v1/simpleGetMethodWithError

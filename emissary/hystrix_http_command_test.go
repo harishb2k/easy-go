@@ -150,7 +150,7 @@ func TestHystrixHttpCommand_ActualServer(t *testing.T) {
     }
 }
 
-func TestHystrixHttpCommand_ActualServer_HystrixCurcitOpen(t *testing.T) {
+func TestHystrixHttpCommand_ActualServer_HystrixCircuitOpen(t *testing.T) {
     setupTest()
 
     ctx, _ := NewContext(
@@ -158,20 +158,23 @@ func TestHystrixHttpCommand_ActualServer_HystrixCurcitOpen(t *testing.T) {
         logger,
     )
 
-    response, err := ctx.Execute(
-        "local", "simpleGetMethodWithError",
-        &Request{
-            PathParam:  map[string]interface{}{"id": 1},
-            Body:       &TestServerObject{StringValue: "TestHystrixHttpCommand_ActualServer", ErrorCodeToReturn: 500},
-            ResultFunc: DefaultJsonResultFunc(&TestServerObject{}),
-        },
-    )
-
-    assert.Error(t, err)
-    assert.Nil(t, response)
-    if err != nil {
-        logger.Debug(err.FormattedDebugString())
-    } else {
-        logger.Debug(response.FormattedDebugString())
+    var hystrixErrorCircuitOpen = 0
+    for i := 1; i <= 100; i++ {
+        response, err := ctx.Execute(
+            "local", "simpleGetMethodWithError",
+            &Request{
+                PathParam:  map[string]interface{}{"id": 1},
+                Body:       &TestServerObject{StringValue: "TestHystrixHttpCommand_ActualServer", ErrorCodeToReturn: 500},
+                ResultFunc: DefaultJsonResultFunc(&TestServerObject{}),
+            },
+        )
+        assert.Error(t, err)
+        var _ = response
+        if err != nil {
+            if errors.Is(err.GetError(), ErrHystrixCircuitOpen) {
+                hystrixErrorCircuitOpen++
+            }
+        }
     }
+    assert.True(t, hystrixErrorCircuitOpen > 60)
 }

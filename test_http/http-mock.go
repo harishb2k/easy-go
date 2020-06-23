@@ -17,6 +17,8 @@ type TestServerObject struct {
     ResponseStringValue string `json:"response_string_value"`
     ResponseIntValue    int    `json:"response_int_value"`
     ResponseBoolValue   bool   `json:"response_bool_value"`
+
+    Headers map[string]string
 }
 
 type HttpMockSpec struct {

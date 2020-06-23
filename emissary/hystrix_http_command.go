@@ -29,7 +29,7 @@ func (c *HystrixHttpCommand) Setup(logger easy.Logger) (err error) {
         hystrix.CommandConfig{
             Timeout:               c.Api.RequestTimeout + (c.Api.RequestTimeout / 10),
             MaxConcurrentRequests: c.Api.MaxRequestQueueSize,
-            ErrorPercentThreshold: 25,
+            ErrorPercentThreshold: 1,
         },
     )
     return
