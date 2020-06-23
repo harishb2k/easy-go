@@ -92,6 +92,28 @@ func (c *HttpCommand) Execute(request *Request) (response *Response, e easy.Erro
         }
         break
 
+    case "PUT":
+        if httpRequest, err = http.NewRequest("PUT", url, body); err != nil {
+            return nil, &easy.ErrorObj{
+                Err:         err,
+                Name:        "http_call_failed",
+                Description: "Failed to create http request for " + c.commandName(),
+                Object:      &Response{StatusCode: 500, Status: "Unknown"},
+            }
+        }
+        break
+
+    case "DELETE":
+        if httpRequest, err = http.NewRequest("DELETE", url, body); err != nil {
+            return nil, &easy.ErrorObj{
+                Err:         err,
+                Name:        "http_call_failed",
+                Description: "Failed to create http request for " + c.commandName(),
+                Object:      &Response{StatusCode: 500, Status: "Unknown"},
+            }
+        }
+        break
+
     default:
         return nil, &easy.ErrorObj{
             Err:         errors.New("method not supported"),
