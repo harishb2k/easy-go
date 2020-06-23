@@ -29,6 +29,8 @@ var dummyHttpResponseString = `{
         }`
 
 var config = localConfig{}
+// var logger = DefaultLogger{}
+var logger = NoOpLogger{}
 
 func setupTest() {
     data, err := ioutil.ReadFile("./testdata/app.yml")
@@ -65,7 +67,7 @@ func TestHttpCommand_ExpectSuccess(t *testing.T) {
     httpCommand := NewHttpCommand(
         service,
         api,
-        DefaultLogger{},
+        logger,
     )
 
     // Make Http call
@@ -111,7 +113,7 @@ func TestHttpCommand_ExpectSuccess_ServerReturnedStatus400_But400_Is_Accepted(t 
     httpCommand := NewHttpCommand(
         service,
         api,
-        DefaultLogger{},
+        logger,
     )
 
     // Make Http call
@@ -161,7 +163,7 @@ func TestHttpCommand_ExpectSuccess_ServerTimeout(t *testing.T) {
     httpCommand := NewHttpCommand(
         service,
         api,
-        DefaultLogger{},
+        logger,
     )
 
     // Make Http call
@@ -203,7 +205,7 @@ func TestHystrixHttpCommand_ExpectSuccess(t *testing.T) {
     httpCommand := NewHystrixHttpCommand(
         service,
         api,
-        DefaultLogger{},
+        logger,
     )
 
     // Make Http call
@@ -250,7 +252,7 @@ func TestHystrixHttpCommand_ExpectError_WithTimeout(t *testing.T) {
     httpCommand := NewHystrixHttpCommand(
         service,
         api,
-        DefaultLogger{},
+        logger,
     )
 
     // Make Http call
