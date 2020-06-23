@@ -25,16 +25,16 @@ type Api struct {
 // This is a service which will have a list of APIs
 type Service struct {
     Name    string
-    Type    string         `yaml:"type"`
-    Host    string         `yaml:"host"`
-    Port    int            `yaml:"port"`
-    ApiList map[string]Api `yaml:"apis"`
+    Type    string          `yaml:"type"`
+    Host    string          `yaml:"host"`
+    Port    int             `yaml:"port"`
+    ApiList map[string]*Api `yaml:"apis"`
 }
 
 // This is the main emissary configuration
 type Configuration struct {
     ClientConfiguration ClientConfiguration `yaml:"clientConfiguration"`
-    ServiceList         map[string]Service  `yaml:"services"`
+    ServiceList         map[string]*Service `yaml:"services"`
 }
 
 // This is a complete Emissary context - this context contains all service and api commands

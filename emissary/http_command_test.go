@@ -11,7 +11,7 @@ import (
 )
 
 type localConfig struct {
-    EmissaryConfiguration Configuration `yaml:"emissaryConfiguration"`
+    EmissaryConfiguration *Configuration `yaml:"emissaryConfiguration"`
 }
 
 type dummyHttpResponse struct {

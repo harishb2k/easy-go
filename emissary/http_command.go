@@ -12,12 +12,12 @@ import (
 )
 
 type HttpCommand struct {
-    Service Service
-    Api     Api
+    Service *Service
+    Api     *Api
     easy.Logger
 }
 
-func NewHttpCommand(service Service, api Api, logger easy.Logger) (HttpCommand) {
+func NewHttpCommand(service *Service, api *Api, logger easy.Logger) (HttpCommand) {
     command := HttpCommand{
         Service: service,
         Api:     api,

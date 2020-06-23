@@ -9,7 +9,7 @@ type HystrixHttpCommand struct {
     HttpCommand
 }
 
-func NewHystrixHttpCommand(Service Service, Api Api, logger easy.Logger) (*HystrixHttpCommand) {
+func NewHystrixHttpCommand(Service *Service, Api *Api, logger easy.Logger) (*HystrixHttpCommand) {
     httpCommand := HystrixHttpCommand{
         HttpCommand: NewHttpCommand(
             Service,
