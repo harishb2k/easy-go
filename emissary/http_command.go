@@ -5,6 +5,7 @@ import (
     "errors"
     "github.com/google/uuid"
     "github.com/harishb2k/easy-go/basic"
+    "github.com/harishb2k/easy-go/easy"
     "io/ioutil"
     "net/http"
     "strconv"
@@ -61,7 +62,11 @@ func (c *HttpCommand) Execute(request *Request) (response *Response, err error) 
     // Make http call
     var httpResponse *http.Response;
     if httpResponse, err = http.DefaultClient.Do(httpRequest.WithContext(ctx)); err != nil {
-        return nil, errors.New("Http request failed with error " + c.commandName() + " " + err.Error())
+        return nil, easy.Error{
+            Err:         err,
+            Name:        "http_call_failed",
+            Description: "Http request failed with error " + c.commandName() + " " + err.Error(),
+        }
     }
     defer httpResponse.Body.Close()
 
