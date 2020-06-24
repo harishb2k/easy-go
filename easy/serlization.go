@@ -2,6 +2,7 @@ package easy
 
 import (
     "encoding/json"
+    "fmt"
     "strconv"
 )
 
@@ -18,26 +19,31 @@ func ObjectifyString(data string, obj interface{}) (err error) {
     return Objectify([]byte(data), obj)
 }
 
-func StringifyWithError(input interface{}) (string, error) {
+func StringifyWithError(input interface{}) (out string, err error) {
     switch v := input.(type) {
     case int:
-        return strconv.Itoa(v), nil
+        out = strconv.Itoa(v)
+
+    case int8, int16, int32, int64:
+        out = fmt.Sprintf("%d", v)
+
     case bool:
         if v == true {
-            return "true", nil
+            out = "true"
         } else {
-            return "false", nil
+            out = "false"
         }
     case string:
-        return v, nil
+        out = v
 
     default:
-        out, err := json.Marshal(v)
-        if err != nil {
-            return "", err
+        if _out, err := json.Marshal(v); err != nil {
+            out = ""
+        } else {
+            out = string(_out)
         }
-        return string(out), nil
     }
+    return
 }
 
 func BytesWithError(input interface{}) ([]byte, error) {

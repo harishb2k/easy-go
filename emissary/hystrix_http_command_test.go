@@ -29,7 +29,7 @@ func TestHystrixHttpCommand_ExpectError_WithTimeout(t *testing.T) {
     api := service.ApiList["update"]
     service.Name = "serviceA"
     api.Name = "update"
-    api.RequestTimeout = 5
+    api.RequestTimeout = 1
 
     // Setup dummy http response
     SetupMockHttpResponse(
@@ -37,7 +37,7 @@ func TestHystrixHttpCommand_ExpectError_WithTimeout(t *testing.T) {
             Url:         "http://jsonplaceholder.typicode.com:80/todos/1",
             Data:        dummyHttpResponseString,
             ResponseObj: &dummyHttpResponse{},
-            Delay:       5000,
+            Delay:       500,
         },
     )
 
@@ -56,11 +56,8 @@ func TestHystrixHttpCommand_ExpectError_WithTimeout(t *testing.T) {
         },
     )
     assert.Error(t, err)
-    assert.True(t, errors.Is(err.GetError(), ErrHystrixTimeout))
     assert.Nil(t, response)
-    obj, ok := err.GetObject().(*Response)
-    assert.True(t, ok)
-    assert.Equal(t, 500, obj.StatusCode)
+    assert.Equal(t, ErrorCodeHttpServerTimeout, err.GetName())
 }
 
 func TestHystrixHttpCommand_CircuitOpen(t *testing.T) {

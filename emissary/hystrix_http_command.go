@@ -4,6 +4,7 @@ import (
     "errors"
     "github.com/afex/hystrix-go/hystrix"
     "github.com/harishb2k/easy-go/easy"
+    "time"
 )
 
 type HystrixHttpCommand struct {
@@ -22,12 +23,23 @@ func NewHystrixHttpCommand(Service *Service, Api *Api, logger easy.Logger) (*Hys
     return &httpCommand
 }
 
+func (a *Api) getRequestTimeoutWithBuffer() (timeout int) {
+    timeout = a.RequestTimeout
+    delta := timeout / 10
+    if delta < 10 {
+        timeout = timeout + 10
+    } else {
+        timeout = timeout + delta
+    }
+    return timeout
+}
+
 // Setup a command at boot time
 func (c *HystrixHttpCommand) Setup(logger easy.Logger) (err error) {
     hystrix.ConfigureCommand(
         c.commandName(),
         hystrix.CommandConfig{
-            Timeout:               c.Api.RequestTimeout + (c.Api.RequestTimeout / 10),
+            Timeout:               c.Api.getRequestTimeoutWithBuffer(),
             MaxConcurrentRequests: c.Api.MaxRequestQueueSize,
             ErrorPercentThreshold: 1,
         },
@@ -60,6 +72,15 @@ func (c *HystrixHttpCommand) Execute(request *Request) (response *Response, err 
         close(responseOutputChannel)
         close(errorChannel)
         return nil, err
+
+    case _ = <-time.After(time.Duration(c.Api.getRequestTimeoutWithBuffer()+10) * time.Millisecond):
+        c.Error("HystrixHttpCommand: time based timeout - ", "command=", c.commandName(), "error=", err)
+        return nil, &easy.ErrorObj{
+            Err:         ErrHystrixTimeout,
+            Name:        hystrixErrorToInternalError(hystrix.ErrTimeout).Error(),
+            Description: "Got hystrix error = " + hystrixErrorToInternalError(hystrix.ErrTimeout).Error(),
+            Object:      &Response{StatusCode: 500, Status: "Unknown"},
+        }
 
     case err := <-hystrixError:
         c.Error("HystrixHttpCommand: error to run command - ", "command=", c.commandName(), "error=", err)

@@ -5,6 +5,11 @@ import (
     "github.com/harishb2k/easy-go/easy"
 )
 
+const (
+    ErrorCodeHttpServerTimeout = "ErrorCodeHttpServerTimeout"
+    ErrorCodeHttpServerUnknown = "ErrorCodeHttpServerUnknown"
+)
+
 var (
     ErrHystrixRejection   = errors.New("hystrix_error_rejection")
     ErrHystrixCircuitOpen = errors.New("hystrix_error_circuit_open")

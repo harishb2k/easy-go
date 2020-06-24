@@ -131,7 +131,7 @@ func (c *HttpCommand) Execute(request *Request) (response *Response, e easy.Erro
     if httpResponse, err = http.DefaultClient.Do(httpRequest.WithContext(ctx)); err != nil {
         return nil, &easy.ErrorObj{
             Err:         err,
-            Name:        "http_call_failed",
+            Name:        ErrorCodeHttpServerTimeout,
             Description: "Http request failed with error " + c.commandName() + " " + err.Error(),
             Object:      &Response{StatusCode: 500, Status: "Unknown"},
         }
