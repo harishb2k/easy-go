@@ -70,4 +70,13 @@ func TestUsageErrorObj(t *testing.T) {
     assert.Equal(t, "error_description", errorObj.Description)
     assert.Equal(t, "error_err", errorObj.Err.Error())
     assert.Equal(t, "error_object", errorObj.Object)
+
+    if e, ok := AsErrorObj(err); ok {
+        assert.Equal(t, "error_name", e.Name)
+        assert.Equal(t, "error_description", e.Description)
+        assert.Equal(t, "error_err", e.Err.Error())
+        assert.Equal(t, "error_object", e.Object)
+    } else {
+        assert.Fail(t, "Expected to get Error Object from err")
+    }
 }

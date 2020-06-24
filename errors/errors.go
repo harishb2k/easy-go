@@ -28,3 +28,8 @@ func Is(err, target error) bool {
 func As(err error, target interface{}) bool {
     return errors.As(err, target)
 }
+
+func AsErrorObj(err error) (e *ErrorObj, ok bool) {
+    ok = errors.As(err, &e)
+    return
+}
