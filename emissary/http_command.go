@@ -5,7 +5,8 @@ import (
     "context"
     "errors"
     "github.com/google/uuid"
-    "github.com/harishb2k/easy-go/easy"
+    . "github.com/harishb2k/easy-go/easy"
+    . "github.com/harishb2k/easy-go/errors"
     "io"
     "io/ioutil"
     "net/http"
@@ -17,10 +18,10 @@ import (
 type HttpCommand struct {
     Service *Service
     Api     *Api
-    easy.Logger
+    Logger
 }
 
-func NewHttpCommand(service *Service, api *Api, logger easy.Logger) (HttpCommand) {
+func NewHttpCommand(service *Service, api *Api, logger Logger) (HttpCommand) {
     command := HttpCommand{
         Service: service,
         Api:     api,
@@ -30,17 +31,17 @@ func NewHttpCommand(service *Service, api *Api, logger easy.Logger) (HttpCommand
 }
 
 // Setup this command
-func (c *HttpCommand) Setup(logger easy.Logger) (err error) {
+func (c *HttpCommand) Setup(logger Logger) (err error) {
     if logger != nil {
         c.Logger = logger
     } else {
-        c.Logger = &easy.DefaultLogger{};
+        c.Logger = &DefaultLogger{};
     }
     return nil
 }
 
 // Execute a request
-func (c *HttpCommand) Execute(request *Request) (response *Response, e easy.Error) {
+func (c *HttpCommand) Execute(request *Request) (response *Response, e error) {
     var err error
     requestId := uuid.New().String()
 
@@ -55,8 +56,8 @@ func (c *HttpCommand) Execute(request *Request) (response *Response, e easy.Erro
     var body io.Reader
 
     if request.Body != nil {
-        if payload, err = easy.BytesWithError(request.Body); err != nil {
-            return nil, &easy.ErrorObj{
+        if payload, err = BytesWithError(request.Body); err != nil {
+            return nil, &ErrorObj{
                 Err:         err,
                 Name:        "http_call_failed",
                 Description: "Failed to convert object to byte body for " + c.commandName(),
@@ -72,7 +73,7 @@ func (c *HttpCommand) Execute(request *Request) (response *Response, e easy.Erro
     switch c.Api.Method {
     case "GET":
         if httpRequest, err = http.NewRequest("GET", url, body); err != nil {
-            return nil, &easy.ErrorObj{
+            return nil, &ErrorObj{
                 Err:         err,
                 Name:        "http_call_failed",
                 Description: "Failed to create http request for " + c.commandName(),
@@ -83,7 +84,7 @@ func (c *HttpCommand) Execute(request *Request) (response *Response, e easy.Erro
 
     case "POST":
         if httpRequest, err = http.NewRequest("POST", url, body); err != nil {
-            return nil, &easy.ErrorObj{
+            return nil, &ErrorObj{
                 Err:         err,
                 Name:        "http_call_failed",
                 Description: "Failed to create http request for " + c.commandName(),
@@ -94,7 +95,7 @@ func (c *HttpCommand) Execute(request *Request) (response *Response, e easy.Erro
 
     case "PUT":
         if httpRequest, err = http.NewRequest("PUT", url, body); err != nil {
-            return nil, &easy.ErrorObj{
+            return nil, &ErrorObj{
                 Err:         err,
                 Name:        "http_call_failed",
                 Description: "Failed to create http request for " + c.commandName(),
@@ -105,7 +106,7 @@ func (c *HttpCommand) Execute(request *Request) (response *Response, e easy.Erro
 
     case "DELETE":
         if httpRequest, err = http.NewRequest("DELETE", url, body); err != nil {
-            return nil, &easy.ErrorObj{
+            return nil, &ErrorObj{
                 Err:         err,
                 Name:        "http_call_failed",
                 Description: "Failed to create http request for " + c.commandName(),
@@ -115,7 +116,7 @@ func (c *HttpCommand) Execute(request *Request) (response *Response, e easy.Erro
         break
 
     default:
-        return nil, &easy.ErrorObj{
+        return nil, &ErrorObj{
             Err:         errors.New("method not supported"),
             Name:        "http_call_failed",
             Description: "Http request does not support method type " + c.commandName(),
@@ -129,7 +130,7 @@ func (c *HttpCommand) Execute(request *Request) (response *Response, e easy.Erro
     // Make http call
     var httpResponse *http.Response;
     if httpResponse, err = http.DefaultClient.Do(httpRequest.WithContext(ctx)); err != nil {
-        return nil, &easy.ErrorObj{
+        return nil, &ErrorObj{
             Err:         err,
             Name:        ErrorCodeHttpServerTimeout,
             Description: "Http request failed with error " + c.commandName() + " " + err.Error(),
@@ -163,7 +164,7 @@ func (c *HttpCommand) getUrl(reqId string, request *Request) (string) {
 
     if request.PathParam != nil {
         for key, value := range request.PathParam {
-            url = strings.Replace(url, "$${"+key+"}", easy.Stringify(value), 1)
+            url = strings.Replace(url, "$${"+key+"}", Stringify(value), 1)
         }
         c.Debug(reqId, "HttpCommand: after path param replacement url=", url)
     }
@@ -176,7 +177,7 @@ func (c *HttpCommand) populateHeaders(reqId string, request *Request, httpReques
     // Setup headers
     if request.Header != nil {
         for key, value := range request.Header {
-            httpRequest.Header.Set(key, easy.Stringify(value))
+            httpRequest.Header.Set(key, Stringify(value))
         }
     }
 
@@ -223,18 +224,18 @@ func (c *HttpCommand) populateResponse(reqId string, request *Request, response 
             response.Result, response.Error = request.ResultFunc(response.ResponseBody)
         }
     } else if acceptedErr != nil {
-        response.SerErrorIfNotNil(&easy.ErrorObj{
+        response.SerErrorIfNotNil(&ErrorObj{
             Err:         acceptedErr,
             Name:        ErrorCodeHttpServerApiError,
-            Description: "Api call failed with error: code=" + easy.Stringify(response.StatusCode),
-            Object:      &Response{StatusCode: response.StatusCode, Status: easy.Stringify(response.StatusCode)},
+            Description: "Api call failed with error: code=" + Stringify(response.StatusCode),
+            Object:      &Response{StatusCode: response.StatusCode, Status: Stringify(response.StatusCode)},
         })
     } else if err != nil {
-        response.SerErrorIfNotNil(&easy.ErrorObj{
+        response.SerErrorIfNotNil(&ErrorObj{
             Err:         err,
             Name:        ErrorCodeHttpFailedToReadBody,
             Description: "Failed to read body from http response",
-            Object:      &Response{StatusCode: response.StatusCode, Status: easy.Stringify(response.StatusCode)},
+            Object:      &Response{StatusCode: response.StatusCode, Status: Stringify(response.StatusCode)},
         })
     }
 }

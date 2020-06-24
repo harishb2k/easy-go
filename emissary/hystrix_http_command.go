@@ -3,7 +3,8 @@ package emissary
 import (
     "errors"
     "github.com/afex/hystrix-go/hystrix"
-    "github.com/harishb2k/easy-go/easy"
+    . "github.com/harishb2k/easy-go/easy"
+    . "github.com/harishb2k/easy-go/errors"
     "time"
 )
 
@@ -11,7 +12,7 @@ type HystrixHttpCommand struct {
     HttpCommand
 }
 
-func NewHystrixHttpCommand(Service *Service, Api *Api, logger easy.Logger) (*HystrixHttpCommand) {
+func NewHystrixHttpCommand(Service *Service, Api *Api, logger Logger) (*HystrixHttpCommand) {
     httpCommand := HystrixHttpCommand{
         HttpCommand: NewHttpCommand(
             Service,
@@ -35,7 +36,7 @@ func (a *Api) getRequestTimeoutWithBuffer() (timeout int) {
 }
 
 // Setup a command at boot time
-func (c *HystrixHttpCommand) Setup(logger easy.Logger) (err error) {
+func (c *HystrixHttpCommand) Setup(logger Logger) (err error) {
     hystrix.ConfigureCommand(
         c.commandName(),
         hystrix.CommandConfig{
@@ -48,8 +49,8 @@ func (c *HystrixHttpCommand) Setup(logger easy.Logger) (err error) {
 }
 
 // Execute a request
-func (c *HystrixHttpCommand) Execute(request *Request) (response *Response, err easy.Error) {
-    errorChannel := make(chan easy.Error, 1)
+func (c *HystrixHttpCommand) Execute(request *Request) (response *Response, err error) {
+    errorChannel := make(chan Error, 1)
     responseOutputChannel := make(chan *Response, 1)
     hystrixError := hystrix.Go(c.commandName(), func() (error) {
         if result, err := c.HttpCommand.Execute(request); err != nil {
@@ -75,7 +76,7 @@ func (c *HystrixHttpCommand) Execute(request *Request) (response *Response, err 
 
     case _ = <-time.After(time.Duration(c.Api.getRequestTimeoutWithBuffer()+10) * time.Millisecond):
         c.Error("HystrixHttpCommand: time based timeout - ", "command=", c.commandName(), "error=", err)
-        return nil, &easy.ErrorObj{
+        return nil, &ErrorObj{
             Err:         ErrHystrixTimeout,
             Name:        hystrixErrorToInternalError(hystrix.ErrTimeout).Error(),
             Description: "Got hystrix error = " + hystrixErrorToInternalError(hystrix.ErrTimeout).Error(),
@@ -84,7 +85,7 @@ func (c *HystrixHttpCommand) Execute(request *Request) (response *Response, err 
 
     case err := <-hystrixError:
         c.Error("HystrixHttpCommand: error to run command - ", "command=", c.commandName(), "error=", err)
-        return nil, &easy.ErrorObj{
+        return nil, &ErrorObj{
             Err:         hystrixErrorToInternalError(err),
             Name:        hystrixErrorToInternalError(err).Error(),
             Description: "Got hystrix error = " + hystrixErrorToInternalError(err).Error(),

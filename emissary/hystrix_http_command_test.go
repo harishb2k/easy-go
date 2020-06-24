@@ -3,6 +3,7 @@ package emissary
 import (
     "errors"
     "github.com/afex/hystrix-go/hystrix"
+    . "github.com/harishb2k/easy-go/errors"
     . "github.com/harishb2k/easy-go/test_http"
     "github.com/harishb2k/easy-go/tools"
     "github.com/jarcoal/httpmock"
@@ -15,6 +16,51 @@ import (
 
 func init() {
     tools.RunServer("12345")
+}
+
+func TestHystrixHttpCommand_ExpectSuccess(t *testing.T) {
+    setupTest()
+
+    httpmock.Activate()
+    defer httpmock.DeactivateAndReset()
+
+    // Get service and api from config
+    service := config.EmissaryConfiguration.ServiceList["serviceA"]
+    api := service.ApiList["update"]
+    service.Name = "serviceA"
+    api.Name = "update"
+
+    // Setup dummy http response
+    SetupMockHttpResponse(
+        HttpMockSpec{
+            Url:         "http://jsonplaceholder.typicode.com:80/todos/1",
+            Data:        dummyHttpResponseString,
+            ResponseObj: &dummyHttpResponse{},
+        },
+    )
+
+    // Make http command and set it up
+    httpCommand := NewHystrixHttpCommand(
+        service,
+        api,
+        logger,
+    )
+
+    // Make Http call
+    response, err := httpCommand.Execute(
+        &Request{
+            PathParam:  map[string]interface{}{"id": 1},
+            ResultFunc: DefaultJsonResultFunc(&dummyHttpResponse{}),
+        },
+    )
+    assert.NoError(t, err)
+    assert.NotNil(t, response)
+
+    result, ok := response.Result.(*dummyHttpResponse)
+    assert.True(t, ok)
+    assert.NotNil(t, result)
+    assert.Equal(t, 100, result.ID)
+    assert.Equal(t, "testme", result.Title)
 }
 
 func TestHystrixHttpCommand_ExpectError_WithTimeout(t *testing.T) {
@@ -57,7 +103,10 @@ func TestHystrixHttpCommand_ExpectError_WithTimeout(t *testing.T) {
     )
     assert.Error(t, err)
     assert.Nil(t, response)
-    assert.Equal(t, ErrorCodeHttpServerTimeout, err.GetName())
+
+    errObj, ok := Cause(err).(*ErrorObj)
+    assert.True(t, ok)
+    assert.Equal(t, ErrorCodeHttpServerTimeout, errObj.Name)
 }
 
 func TestHystrixHttpCommand_CircuitOpen(t *testing.T) {
@@ -102,11 +151,9 @@ func TestHystrixHttpCommand_CircuitOpen(t *testing.T) {
                 },
             )
             if err == nil {
-                // fmt.Println(response.FormattedDebugString())
                 var _ = response
             } else {
-                // fmt.Println(err.FormattedDebugString())
-                if errors.Is(err.GetError(), ErrHystrixRejection) {
+                if errObj, ok := Cause(err).(*ErrorObj); ok && errors.Is(errObj.Err, ErrHystrixRejection) {
                     atomic.AddInt32(&errHystrixRejectionCount, 1)
                 }
             }
@@ -141,7 +188,9 @@ func TestHystrixHttpCommand_ActualServer(t *testing.T) {
     assert.Equal(t, "TestHystrixHttpCommand_ActualServer Response", result.ResponseStringValue)
 
     if err != nil {
-        logger.Debug(err.FormattedDebugString())
+        if errObj, ok := Cause(err).(*ErrorObj); ok {
+            logger.Debug(errObj.FormattedDebugString())
+        }
     } else {
         logger.Debug(response.FormattedDebugString())
     }
@@ -168,7 +217,7 @@ func TestHystrixHttpCommand_ActualServer_HystrixCircuitOpen(t *testing.T) {
         assert.Error(t, err)
         var _ = response
         if err != nil {
-            if errors.Is(err.GetError(), ErrHystrixCircuitOpen) {
+            if errObj, ok := Cause(err).(*ErrorObj); ok && errors.Is(errObj.Err, ErrHystrixCircuitOpen) {
                 hystrixErrorCircuitOpen++
             }
         }
@@ -223,6 +272,8 @@ func TestHystrixHttpCommand_ActualServer_Post_ExpectError(t *testing.T) {
     )
     assert.Error(t, err)
     assert.Nil(t, response)
-    assert.Equal(t, ErrorCodeHttpServerApiError, err.GetName())
+    errObj, ok := Cause(err).(*ErrorObj)
+    assert.True(t, ok)
+    assert.Equal(t, ErrorCodeHttpServerApiError, errObj.Name)
 
 }

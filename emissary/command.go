@@ -3,13 +3,14 @@ package emissary
 import (
     "fmt"
     "github.com/harishb2k/easy-go/easy"
+    . "github.com/harishb2k/easy-go/errors"
 )
 
 // This function returns body for HTTP request
 type BodyFunc func() ([]byte)
 
 // This function returns a user response object from Http response
-type ResultFunc func([]byte) (interface{}, easy.Error)
+type ResultFunc func([]byte) (interface{}, Error)
 
 // A HTTP request
 type Request struct {
@@ -27,8 +28,8 @@ type Response struct {
     ResponseBody  []byte
     StatusCode    int
     Status        string
-    Error         easy.Error
-    OriginalError easy.Error
+    Error         error
+    OriginalError error
 }
 
 type Command interface {
@@ -36,10 +37,10 @@ type Command interface {
     Setup(logger easy.Logger) (err error)
 
     // Execute a request
-    Execute(request *Request) (response *Response, err easy.Error)
+    Execute(request *Request) (response *Response, err error)
 }
 
-func (r *Response) SerErrorIfNotNil(err *easy.ErrorObj) {
+func (r *Response) SerErrorIfNotNil(err *ErrorObj) {
     if err != nil && err.Err != nil {
         r.Error = err
     }
@@ -47,7 +48,7 @@ func (r *Response) SerErrorIfNotNil(err *easy.ErrorObj) {
 
 func (r *Response) HasError() bool {
     if r.Error != nil {
-        if v, ok := r.Error.(*easy.ErrorObj); ok {
+        if v, ok := r.Error.(*ErrorObj); ok {
             return v.Err != nil
         }
     }
