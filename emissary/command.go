@@ -7,7 +7,7 @@ import (
 )
 
 // This function returns body for HTTP request
-type BodyFunc func() ([]byte)
+type BodyFunc func() ([]byte, error)
 
 // This function returns a user response object from Http response
 type ResultFunc func([]byte) (interface{}, Error)

@@ -48,3 +48,17 @@ func DefaultJsonResultFunc(obj interface{}) (ResultFunc) {
         return obj, nil
     }
 }
+
+func DefaultBodyFunc(obj interface{}) (BodyFunc) {
+    return func() ([]byte, error) {
+        if bytes, err := json.Marshal(obj); err != nil {
+            return nil, &ErrorObj{
+                Err:         err,
+                Name:        "failed_to_build_object",
+                Description: "Failed to convert byte body to requested object type",
+            }
+        } else {
+            return bytes, nil
+        }
+    }
+}

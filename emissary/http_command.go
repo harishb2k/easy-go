@@ -66,6 +66,17 @@ func (c *HttpCommand) Execute(request *Request) (response *Response, e error) {
         } else if payload != nil {
             body = bytes.NewReader(payload)
         }
+    } else if request.BodyFunc != nil {
+        if payload, err = request.BodyFunc(); payload != nil {
+            return nil, &ErrorObj{
+                Err:         err,
+                Name:        "http_call_failed",
+                Description: "Failed to convert object to byte body for " + c.commandName(),
+                Object:      &Response{StatusCode: 500, Status: "Unknown"},
+            }
+        } else if payload != nil {
+            body = bytes.NewReader(payload)
+        }
     }
 
     // Make correct http request
