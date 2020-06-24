@@ -223,4 +223,6 @@ func TestHystrixHttpCommand_ActualServer_Post_ExpectError(t *testing.T) {
     )
     assert.Error(t, err)
     assert.Nil(t, response)
+    assert.Equal(t, ErrorCodeHttpServerApiError, err.GetName())
+
 }
