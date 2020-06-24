@@ -2,7 +2,6 @@ package test_http
 
 import (
     "encoding/json"
-    "fmt"
     "github.com/jarcoal/httpmock"
     "net/http"
     "time"
@@ -51,7 +50,6 @@ func SetupMockHttpResponse(spec HttpMockSpec) {
         func(req *http.Request) (*http.Response, error) {
 
             // Setup Delay if requested
-            fmt.Println("bad")
             if spec.Delay > 0 {
                 time.Sleep(time.Duration(spec.Delay) * time.Millisecond)
             }
@@ -59,11 +57,9 @@ func SetupMockHttpResponse(spec HttpMockSpec) {
             // Send final response with status code
             resp, err := httpmock.NewJsonResponse(spec.StatusCode, spec.ResponseObj)
             if err != nil {
-                fmt.Println("Sending Error", resp, nil)
                 return httpmock.NewStringResponse(500, ""), nil
             }
-
-            fmt.Println("Sending ", resp, nil)
+            
             return resp, nil
         },
     )
