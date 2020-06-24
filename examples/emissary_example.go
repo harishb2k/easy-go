@@ -3,9 +3,9 @@ package examples
 import (
     "fmt"
     "github.com/harishb2k/gox-base"
-    . "github.com/harishb2k/easy-go/emissary"
-    . "github.com/harishb2k/easy-go/test_http"
-    "github.com/harishb2k/easy-go/tools"
+    . "github.com/harishb2k/gox-emissary"
+    "github.com/harishb2k/gox-emissary/testhttp"
+    "github.com/harishb2k/gox-emissary/tools"
     "gopkg.in/yaml.v3"
     "io/ioutil"
 )
@@ -44,8 +44,8 @@ func EmissaryMain() {
         "local", "simpleGetMethod",
         &Request{
             PathParam:  map[string]interface{}{"id": 1},
-            Body:       &TestServerObject{StringValue: "TestHystrixHttpCommand_ActualServer"},
-            ResultFunc: DefaultJsonResultFunc(&TestServerObject{}),
+            Body:       &testhttp.TestServerObject{StringValue: "TestHystrixHttpCommand_ActualServer"},
+            ResultFunc: DefaultJsonResultFunc(&testhttp.TestServerObject{}),
         },
     )
     if err == nil {
