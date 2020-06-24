@@ -1,9 +1,9 @@
 package emissary
 
 import (
-    . "github.com/harishb2k/gox-base"
-    "github.com/harishb2k/easy-go/errors"
     . "github.com/harishb2k/easy-go/test_http"
+    . "github.com/harishb2k/gox-base"
+    "github.com/harishb2k/gox-errors"
     "github.com/jarcoal/httpmock"
     "github.com/stretchr/testify/assert"
     "gopkg.in/yaml.v3"

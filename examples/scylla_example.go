@@ -9,7 +9,7 @@ import (
 
 import (
     "fmt"
-    "github.com/harishb2k/easy-go/errors"
+    "github.com/harishb2k/gox-errors"
 )
 
 // CREATE KEYSPACE test_me WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};

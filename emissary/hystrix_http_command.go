@@ -4,7 +4,7 @@ import (
     "errors"
     "github.com/afex/hystrix-go/hystrix"
     . "github.com/harishb2k/gox-base"
-    . "github.com/harishb2k/easy-go/errors"
+    . "github.com/harishb2k/gox-errors"
     "time"
 )
 

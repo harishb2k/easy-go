@@ -5,7 +5,7 @@ import (
     "github.com/gocql/gocql"
     _ "github.com/gocql/gocql"
     . "github.com/harishb2k/easy-go/db"
-    . "github.com/harishb2k/easy-go/errors"
+    . "github.com/harishb2k/gox-errors"
 )
 
 type Context struct {

@@ -2,7 +2,7 @@ package emissary
 
 import (
     "fmt"
-    "github.com/harishb2k/easy-go/errors"
+    "github.com/harishb2k/gox-errors"
     "github.com/harishb2k/gox-base"
 )
 

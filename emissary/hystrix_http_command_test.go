@@ -3,7 +3,7 @@ package emissary
 import (
     "errors"
     "github.com/afex/hystrix-go/hystrix"
-    . "github.com/harishb2k/easy-go/errors"
+    . "github.com/harishb2k/gox-errors"
     . "github.com/harishb2k/easy-go/test_http"
     "github.com/harishb2k/easy-go/tools"
     "github.com/jarcoal/httpmock"

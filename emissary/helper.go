@@ -2,7 +2,7 @@ package emissary
 
 import (
     "encoding/json"
-    . "github.com/harishb2k/easy-go/errors"
+    . "github.com/harishb2k/gox-errors"
 )
 
 // A helper to get a command using service and api name
