@@ -23,7 +23,8 @@ type User struct {
 }
 
 func ScyllaMain() {
-    scyllaExample()
+    err := scyllaExample()
+    fmt.Println("Final Result: ", err)
 }
 
 func scyllaExample() (err error) {
@@ -51,6 +52,22 @@ func scyllaExample() (err error) {
         return errors.Wrap(err, "Failed to select")
     } else {
         fmt.Println(result)
+    }
+
+    if _, err := context.Execute("DELETE FROM users WHERE id=?", uid); err != nil {
+        return errors.Wrap(err, "Failed to delete")
+    } else {
+        if result, err := context.FindOne("SELECT id, name, age FROM users WHERE id=?", &internalRowMapper{}, uid); err != nil {
+            errObject, ok := errors.AsErrorObj(err)
+            if !ok || errObject == nil {
+                panic("Something is wrong")
+            } else if db.DatabaseErrorRecordNotFound != errObject.Name {
+                panic("Something is wrong - error must be not found")
+            }
+            return errors.Wrap(err, "Expected - we deleted the record so no record found - Failed to select")
+        } else {
+            fmt.Println("Result after delete - expect no result", result)
+        }
     }
 
     return
