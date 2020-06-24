@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5
+	github.com/gocql/gocql v0.0.0-20200624122343-e4aa66a6388c
 	github.com/google/uuid v1.1.1
 	github.com/jarcoal/httpmock v1.0.5
 	github.com/pkg/errors v0.9.1

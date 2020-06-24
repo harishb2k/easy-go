@@ -1,0 +1,63 @@
+package h
+
+import (
+    "fmt"
+    "github.com/gocql/gocql"
+    "github.com/google/uuid"
+    "github.com/harishb2k/easy-go/db"
+    "github.com/harishb2k/easy-go/dbscylla"
+)
+
+type User struct {
+    Id   string
+    Name string
+    Age  int
+}
+
+func Scylla() {
+
+    var context db.IDb
+    context = &dbscylla.Context{
+        Keyspace: "booking_adjudicator",
+        HostList: []string{"127.0.0.1"},
+    }
+    err := context.InitDatabase()
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+
+    uid := uuid.New().String()
+    err = context.Persist(
+        "INSERT INTO users (id, name, age) VALUES(?, ?, ?)",
+        uid, "user_name", 30,
+    )
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+
+    if result, err := context.FindOne("SELECT id, name, age FROM users WHERE id=?", &internalRowMapper{}, uid); err != nil {
+        fmt.Println(err)
+    } else {
+        fmt.Println(result)
+    }
+}
+
+type internalRowMapper struct {
+}
+
+func (internalRowMapper) Map(row interface{}) (result interface{}, err error) {
+    user := User{}
+    if query, ok := row.(*gocql.Query); ok {
+        if err = query.Scan(&user.Id, &user.Name, &user.Age); err != nil {
+            return
+        }
+    } else if itr, ok := row.(*gocql.Iter); ok {
+        if itr.Scan(&user.Id, &user.Name, &user.Age) == false {
+            return
+        }
+    }
+    result = &user
+    return
+}
