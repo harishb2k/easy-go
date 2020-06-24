@@ -3,8 +3,8 @@ package examples
 import (
     "github.com/gocql/gocql"
     "github.com/google/uuid"
-    "github.com/harishb2k/easy-go/db"
-    "github.com/harishb2k/easy-go/dbscylla"
+    "github.com/harishb2k/gox-db"
+    "github.com/harishb2k/gox-scylla"
 )
 
 import (

@@ -18,10 +18,14 @@ github.com/hailocab/go-hostpool v0.0.0-20160125115350-e80d13ce29ed h1:5upAirOpQc
 github.com/hailocab/go-hostpool v0.0.0-20160125115350-e80d13ce29ed/go.mod h1:tMWxXQ9wFIaZeTI9F+hmhFiGpFmhOHzyShyFUhRm0H4=
 github.com/harishb2k/gox-base v0.0.2 h1:Q+P8vLO83GA3OtUwT3+WWHjj6qNkcbZKITNmKBDs7i8=
 github.com/harishb2k/gox-base v0.0.2/go.mod h1:ovxuaK7Lsag7V+2wtDvTUIhw+5pu87JPr/a0jKP3l1A=
+github.com/harishb2k/gox-db v0.0.0-20200624210249-70c796accef0 h1:8PxibTlsjmHXReuUzSfcpmm8ykpWVlwQRapxMrm25sI=
+github.com/harishb2k/gox-db v0.0.0-20200624210249-70c796accef0/go.mod h1:igeNDe+PjmB7ej46ZXSr3ZIRr1sI9yEooyFfAnRCfZY=
 github.com/harishb2k/gox-emissary v0.0.0-20200624205554-db7b34f714f4 h1:M90z1z4ib6D/vBigevwPViCKIQGORT3/hfSvYSP52/0=
 github.com/harishb2k/gox-emissary v0.0.0-20200624205554-db7b34f714f4/go.mod h1:s37nzxqxuG7WJ65Q9q5rD+7YOdeS5rHqlBGplAwD7hs=
 github.com/harishb2k/gox-errors v0.0.0-20200624204044-c301f2b2eac8 h1:puxjXDZgp9xsqQDvV0OxEf4K8FmPvPq84iSQQn0GN94=
 github.com/harishb2k/gox-errors v0.0.0-20200624204044-c301f2b2eac8/go.mod h1:vuWgW+WQ1fzyi9XIUtuZHjh6Eug17dTqBWJ1O1uxBJ4=
+github.com/harishb2k/gox-scylla v0.0.0-20200624210558-6c187eacfffe h1:AMUG1uSNBnms1Q6DDmv/4cF53SjQvDO2GRpdaToAOjw=
+github.com/harishb2k/gox-scylla v0.0.0-20200624210558-6c187eacfffe/go.mod h1:jUaebJPBG1OiWELlYakA6zdzS0/w1K7Ia+FQWd4mj1w=
 github.com/jarcoal/httpmock v1.0.5 h1:cHtVEcTxRSX4J0je7mWPfc9BpDpqzXSJ5HbymZmyHck=
 github.com/jarcoal/httpmock v1.0.5/go.mod h1:ATjnClrvW/3tijVmpL/va5Z3aAyGvqU3gCT8nX0Txik=
 github.com/jtolds/gls v4.20.0+incompatible h1:xdiiI2gbIgH/gLH7ADydsJ1uDOEzR8yvV7C0MuV77Wo=
