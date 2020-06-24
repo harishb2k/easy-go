@@ -6,9 +6,10 @@ import (
 )
 
 const (
-    ErrorCodeHttpServerTimeout  = "ErrorCodeHttpServerTimeout"
-    ErrorCodeHttpServerApiError = "ErrorCodeHttpServerApiError"
-    ErrorCodeHttpServerUnknown  = "ErrorCodeHttpServerUnknown"
+    ErrorCodeHttpServerTimeout    = "ErrorCodeHttpServerTimeout"
+    ErrorCodeHttpServerApiError   = "ErrorCodeHttpServerApiError"
+    ErrorCodeHttpFailedToReadBody = "ErrorCodeHttpFailedToReadBody"
+    ErrorCodeHttpServerUnknown    = "ErrorCodeHttpServerUnknown"
 )
 
 var (

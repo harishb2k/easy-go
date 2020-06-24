@@ -29,8 +29,8 @@ var dummyHttpResponseString = `{
         }`
 
 var config = localConfig{}
-var logger = DefaultLogger{}
-// var logger = NoOpLogger{}
+// var logger = DefaultLogger{}
+var logger = NoOpLogger{}
 
 func setupTest() {
     data, err := ioutil.ReadFile("./testdata/app.yml")

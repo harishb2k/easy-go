@@ -232,9 +232,9 @@ func (c *HttpCommand) populateResponse(reqId string, request *Request, response 
     } else if err != nil {
         response.SerErrorIfNotNil(&easy.ErrorObj{
             Err:         err,
-            Name:        "http_call_failed",
-            Description: "Failed dto read http response body 2",
-            Object:      &Response{StatusCode: 500, Status: "Unknown"},
+            Name:        ErrorCodeHttpFailedToReadBody,
+            Description: "Failed to read body from http response",
+            Object:      &Response{StatusCode: response.StatusCode, Status: easy.Stringify(response.StatusCode)},
         })
     }
 }
