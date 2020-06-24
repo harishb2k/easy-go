@@ -5,7 +5,7 @@ import (
     "context"
     "errors"
     "github.com/google/uuid"
-    . "github.com/harishb2k/easy-go/easy"
+    . "github.com/harishb2k/gox-base"
     . "github.com/harishb2k/easy-go/errors"
     "io"
     "io/ioutil"

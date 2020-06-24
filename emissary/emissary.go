@@ -2,7 +2,7 @@ package emissary
 
 import (
     "errors"
-    "github.com/harishb2k/easy-go/easy"
+    "github.com/harishb2k/gox-base"
 )
 
 const (
@@ -58,7 +58,7 @@ type Configuration struct {
 type Context struct {
     commandList    map[string]map[string]Command
     DisableLogging bool
-    logger         easy.Logger
+    logger         base.Logger
 }
 
 // This will read YAML and make all Http Commands
@@ -74,7 +74,7 @@ func (ctx *Context) Setup(configuration *Configuration) (err error) {
     return nil
 }
 
-func NewContext(configuration *Configuration, logger easy.Logger) (ctx *Context, err error) {
+func NewContext(configuration *Configuration, logger base.Logger) (ctx *Context, err error) {
     ctx = &Context{
         commandList: map[string]map[string]Command{},
         logger:      logger,

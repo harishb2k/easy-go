@@ -2,15 +2,15 @@ package emissary
 
 import (
     "fmt"
-    "github.com/harishb2k/easy-go/easy"
-    . "github.com/harishb2k/easy-go/errors"
+    "github.com/harishb2k/easy-go/errors"
+    "github.com/harishb2k/gox-base"
 )
 
 // This function returns body for HTTP request
 type BodyFunc func() ([]byte, error)
 
 // This function returns a user response object from Http response
-type ResultFunc func([]byte) (interface{}, Error)
+type ResultFunc func([]byte) (interface{}, errors.Error)
 
 // A HTTP request
 type Request struct {
@@ -34,13 +34,13 @@ type Response struct {
 
 type Command interface {
     // A method to setup a command when it is initialized by emissary framework
-    Setup(logger easy.Logger) (err error)
+    Setup(logger base.Logger) (err error)
 
     // Execute a request
     Execute(request *Request) (response *Response, err error)
 }
 
-func (r *Response) SerErrorIfNotNil(err *ErrorObj) {
+func (r *Response) SerErrorIfNotNil(err *errors.ErrorObj) {
     if err != nil && err.Err != nil {
         r.Error = err
     }
@@ -48,7 +48,7 @@ func (r *Response) SerErrorIfNotNil(err *ErrorObj) {
 
 func (r *Response) HasError() bool {
     if r.Error != nil {
-        if v, ok := r.Error.(*ErrorObj); ok {
+        if v, ok := r.Error.(*errors.ErrorObj); ok {
             return v.Err != nil
         }
     }
@@ -61,7 +61,7 @@ func (r *Response) DoesNotHvaeResponseBody() bool {
 
 func (r *Response) FormattedDebugString() string {
     if r.Result != nil {
-        if resultString, err := easy.StringifyWithError(r.Result); err == nil {
+        if resultString, err := base.StringifyWithError(r.Result); err == nil {
             return fmt.Sprintf("StatusCode=%d \nError=%v \nResponse=%s ", r.StatusCode, r.Error, resultString)
         } else {
             return fmt.Sprintf("StatusCode=%d \nError=%v \nResponse=%v", r.StatusCode, r.Error, r.Result)

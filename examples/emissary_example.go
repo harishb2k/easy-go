@@ -2,7 +2,7 @@ package examples
 
 import (
     "fmt"
-    "github.com/harishb2k/easy-go/easy"
+    "github.com/harishb2k/gox-base"
     . "github.com/harishb2k/easy-go/emissary"
     . "github.com/harishb2k/easy-go/test_http"
     "github.com/harishb2k/easy-go/tools"
@@ -12,7 +12,7 @@ import (
 
 var config = localEmissaryConfiguration{}
 // var logger = DefaultLogger{}
-var logger = easy.NoOpLogger{}
+var logger = base.NoOpLogger{}
 
 type localEmissaryConfiguration struct {
     EmissaryConfiguration *Configuration `yaml:"emissaryConfiguration"`

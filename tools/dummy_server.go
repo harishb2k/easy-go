@@ -4,7 +4,7 @@ import (
     "context"
     "errors"
     "fmt"
-    . "github.com/harishb2k/easy-go/easy"
+    . "github.com/harishb2k/gox-base"
     . "github.com/harishb2k/easy-go/test_http"
     "io/ioutil"
     "net/http"

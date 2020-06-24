@@ -1,7 +1,7 @@
 package emissary
 
 import (
-    . "github.com/harishb2k/easy-go/easy"
+    . "github.com/harishb2k/gox-base"
     "github.com/harishb2k/easy-go/errors"
     . "github.com/harishb2k/easy-go/test_http"
     "github.com/jarcoal/httpmock"
