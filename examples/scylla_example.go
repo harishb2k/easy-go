@@ -3,13 +3,15 @@ package examples
 import (
     "github.com/gocql/gocql"
     "github.com/google/uuid"
+    "github.com/harishb2k/gox-base"
+    "github.com/harishb2k/gox-base/metrics"
     "github.com/harishb2k/gox-db"
     "github.com/harishb2k/gox-scylla"
+    "github.com/pkg/errors"
 )
 
 import (
     "fmt"
-    "github.com/harishb2k/gox-errors"
 )
 
 // CREATE KEYSPACE test_me WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};
@@ -30,10 +32,16 @@ func ScyllaMain() {
 func scyllaExample() (err error) {
 
     var context db.IDb
-    context = &dbscylla.Context{
-        Keyspace: "test_me",
-        HostList: []string{"127.0.0.1"},
-    }
+    context, _ = dbscylla.New(
+        &dbscylla.Context{
+            Keyspace: "test_me",
+            HostList: []string{"127.0.0.1"},
+            ApplicationContext: &base.ApplicationContext{
+                Metrics: metrics.NewPrometheusMetricsDefaultIfError("easy_go_"),
+            },
+        },
+    )
+
     if err := context.InitDatabase(); err != nil {
         return errors.Wrap(err, "Failed to init database")
     }
@@ -58,12 +66,6 @@ func scyllaExample() (err error) {
         return errors.Wrap(err, "Failed to delete")
     } else {
         if result, err := context.FindOne("SELECT id, name, age FROM users WHERE id=?", &internalRowMapper{}, uid); err != nil {
-            errObject, ok := errors.AsErrorObj(err)
-            if !ok || errObject == nil {
-                panic("Something is wrong")
-            } else if db.DatabaseErrorRecordNotFound != errObject.Name {
-                panic("Something is wrong - error must be not found")
-            }
             return errors.Wrap(err, "Expected - we deleted the record so no record found - Failed to select")
         } else {
             fmt.Println("Result after delete - expect no result", result)
